@@ -275,7 +275,7 @@ export default function ProctoringPage() {
             {/* Main image */}
             <div className={`relative z-10 rounded-xl overflow-hidden shadow-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} p-4`}>
               <img
-                src="/exam_home1.png"
+                src="/exam_home.png"
                 alt="AI Proctoring System"
                 className="rounded-lg w-full object-cover"
               />
