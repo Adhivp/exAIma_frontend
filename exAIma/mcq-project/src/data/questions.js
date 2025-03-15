@@ -27,7 +27,7 @@ export const questions = [
         { id: 3, text: '.py', isCorrect: true },
         { id: 4, text: '.python', isCorrect: false },
       ],
-      explanation: 'Python files use the .py extension.',
+      explanation: 'Python files use the .py extension.',   
     },
     {
       text: 'Which of these is NOT a Python data type?',
