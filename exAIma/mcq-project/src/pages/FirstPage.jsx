@@ -12,8 +12,8 @@ export default function ProctoringPage() {
       {/* Navbar */}
       <nav className="w-full bg-white shadow-md p-4 flex justify-between items-center">
         <div className="flex items-center">
-          <img src="/exAIma_logo.png" alt="exAIma Logo" className="h-8 mr-2" />
-          <h1 className="text-2xl text-green-600">exAIma</h1>
+          <img src="/exAIma_logo.png" alt="exAIma Logo" className="h-6 mr-1" />
+          <h1 className="text-1xl font-light text-green-600">exAIma</h1>
         </div>
       </nav>
       
