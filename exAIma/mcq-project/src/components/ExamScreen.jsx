@@ -1,8 +1,9 @@
+import { useState, useEffect } from 'react';
 import { FaCheckCircle, FaRegClock, FaChevronRight } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 function ExamScreen({
-  questions,
   currentQuestionIndex,
   selectedOption,
   answers,
@@ -11,15 +12,153 @@ function ExamScreen({
   handleNextQuestion,
   handlePrevQuestion,
   jumpToQuestion,
-  onSubmit, // New prop to handle final submission
-  showSubmitModal, // New prop to control submit modal visibility
-  setShowSubmitModal, // New prop to toggle submit modal
+  onSubmit,
+  showSubmitModal,
+  setShowSubmitModal,
 }) {
+  const location = useLocation();
+  const { state } = location;
+  const { examId, questions = [], examName = 'Exam', durationMins = 60 } = state || {};
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [localTimeLeft, setLocalTimeLeft] = useState(timeLeft || durationMins * 60);
+  const accessToken = localStorage.getItem('access_token');
+  const tokenType = localStorage.getItem('token_type');
+  const [transformedQuestions, setTransformedQuestions] = useState([]);
+
+  // Transform the API questions into the expected format
+  useEffect(() => {
+    if (questions.length > 0) {
+      const transformed = questions.map((q) => ({
+        id: q.id,
+        text: q.question_text,
+        options: [
+          { id: 'a', text: q.option_a, isCorrect: false }, // isCorrect is assumed; adjust if available
+          { id: 'b', text: q.option_b, isCorrect: false },
+          { id: 'c', text: q.option_c, isCorrect: false },
+          { id: 'd', text: q.option_d, isCorrect: false },
+        ],
+      }));
+      setTransformedQuestions(transformed);
+      setLoading(false);
+    } else {
+      // Fetch questions if not provided (fallback)
+      const fetchQuestions = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(`http://4.240.76.3:8000/exams/${examId}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `${tokenType} ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const transformed = data.questions.map((q) => ({
+              id: q.id,
+              text: q.question_text,
+              options: [
+                { id: 'a', text: q.option_a, isCorrect: false },
+                { id: 'b', text: q.option_b, isCorrect: false },
+                { id: 'c', text: q.option_c, isCorrect: false },
+                { id: 'd', text: q.option_d, isCorrect: false },
+              ],
+            }));
+            setTransformedQuestions(transformed);
+            const durationMins = data.duration_mins || 60;
+            setLocalTimeLeft(durationMins * 60);
+          } else if (response.status === 403) {
+            setError('Access denied. Please log in again.');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('token_type');
+            localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+          } else {
+            const errorData = await response.json();
+            setError(errorData.detail || `Failed to load exam ${examId}.`);
+          }
+        } catch (error) {
+          setError('Network error. Please check your connection.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (examId && accessToken && tokenType) {
+        fetchQuestions();
+      } else {
+        setError('Authentication required. Please log in.');
+        setLoading(false);
+        window.location.href = '/';
+      }
+    }
+  }, [examId, questions, tokenType, accessToken]);
+
+  // Timer functionality
+  useEffect(() => {
+    let timer;
+    if (!loading && localTimeLeft > 0) {
+      timer = setInterval(() => {
+        setLocalTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            onSubmit(); // Auto-submit when time runs out
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [loading, localTimeLeft, onSubmit]);
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl flex items-center justify-center"
+      >
+        <p className="text-green-800 font-semibold">Loading exam...</p>
+      </motion.div>
+    );
+  }
+
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl flex items-center justify-center"
+      >
+        <p className="text-red-500 font-semibold">{error}</p>
+      </motion.div>
+    );
+  }
+
+  if (transformedQuestions.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl flex items-center justify-center"
+      >
+        <p className="text-red-500 font-semibold">No questions available for this exam.</p>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -33,16 +172,16 @@ function ExamScreen({
       <div className="flex-1 pr-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-green-800 tracking-tight">
-            Python MCQ Challenge
+            {examName} MCQ Challenge
           </h1>
           <div className="flex items-center">
             <div
               className={`flex items-center p-2 rounded-lg ${
-                timeLeft < 60 ? 'bg-red-100 text-red-500' : 'bg-green-100 text-green-700'
+                localTimeLeft < 60 ? 'bg-red-100 text-red-500' : 'bg-green-100 text-green-700'
               }`}
             >
               <FaRegClock className="mr-2" />
-              <span className="font-bold">{formatTime(timeLeft)}</span>
+              <span className="font-bold">{formatTime(localTimeLeft)}</span>
             </div>
           </div>
         </div>
@@ -51,7 +190,7 @@ function ExamScreen({
           <motion.div
             className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full"
             initial={{ width: '0%' }}
-            animate={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+            animate={{ width: `${((currentQuestionIndex + 1) / transformedQuestions.length) * 100}%` }}
             transition={{ duration: 0.5 }}
           />
         </div>
@@ -66,10 +205,10 @@ function ExamScreen({
               transition={{ duration: 0.3 }}
             >
               <span className="text-sm font-medium text-green-600 block mb-2">
-                Question {currentQuestionIndex + 1} of {questions.length}
+                Question {currentQuestionIndex + 1} of {transformedQuestions.length}
               </span>
               <h2 className="text-xl font-semibold text-gray-900 leading-tight">
-                {questions[currentQuestionIndex].text}
+                {transformedQuestions[currentQuestionIndex].text}
               </h2>
             </motion.div>
           </AnimatePresence>
@@ -77,7 +216,7 @@ function ExamScreen({
 
         <div className="space-y-4 mb-8">
           <AnimatePresence>
-            {questions[currentQuestionIndex].options.map((option, idx) => (
+            {transformedQuestions[currentQuestionIndex].options.map((option, idx) => (
               <motion.div
                 key={option.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -138,9 +277,8 @@ function ExamScreen({
             whileTap={{ scale: 0.95 }}
             onClick={handleNextQuestion}
             className="flex-1 py-3 rounded-xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg"
-            // Removed disabled and conditional styling to make "Next" always visible
           >
-            {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish'}{' '}
+            {currentQuestionIndex < transformedQuestions.length - 1 ? 'Next' : 'Finish'}{' '}
             <FaChevronRight className="text-sm" />
           </motion.button>
         </div>
@@ -155,7 +293,7 @@ function ExamScreen({
         <h3 className="text-green-800 font-semibold mb-6 text-center">Question Navigator</h3>
 
         <div className="grid grid-cols-3 gap-3">
-          {questions.map((_, index) => (
+          {transformedQuestions.map((_, index) => (
             <motion.button
               key={index}
               whileHover={{ scale: 1.1 }}
@@ -178,7 +316,7 @@ function ExamScreen({
           <div className="flex items-center justify-between mb-4">
             <div className="text-sm text-gray-600">Completed:</div>
             <div className="text-sm font-medium text-green-700">
-              {answers.filter((a) => a !== null).length}/{questions.length}
+              {answers.filter((a) => a !== null).length}/{transformedQuestions.length}
             </div>
           </div>
 
@@ -187,7 +325,7 @@ function ExamScreen({
               className="bg-green-500 h-2 rounded-full"
               initial={{ width: '0%' }}
               animate={{
-                width: `${(answers.filter((a) => a !== null).length / questions.length) * 100}%`,
+                width: `${(answers.filter((a) => a !== null).length / transformedQuestions.length) * 100}%`,
               }}
               transition={{ duration: 0.5 }}
             />

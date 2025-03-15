@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import WelcomeScreen from './components/WelcomeScreen';
 import ExamScreen from './components/ExamScreen';
 import ResultScreen from './components/ResultScreen';
 import TabSwitchWarning from './components/TabSwitchWarning';
-import { questions } from './data/questions';
 
 function App() {
   const [examStarted, setExamStarted] = useState(false);
@@ -14,23 +13,26 @@ function App() {
   const [score, setScore] = useState(0);
   const [examCompleted, setExamCompleted] = useState(false);
   const [tabSwitchWarning, setTabSwitchWarning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(10 * 60); // Default 10 minutes
-  const [answers, setAnswers] = useState(Array(10).fill(null));
+  const [timeLeft, setTimeLeft] = useState(0); // Will be set based on fetched data
+  const [answers, setAnswers] = useState([]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const examId = searchParams.get('examId');
+  const { state } = location;
+  const { examId, questions = [] } = state || {};
 
-  // Set timeLeft based on exam duration (simplified mapping)
+  // Set timeLeft and answers based on fetched exam data
   useEffect(() => {
-    if (examId === '2') {
-      setTimeLeft(15 * 60); // 15 minutes for Python Advanced
-      setAnswers(Array(15).fill(null)); // Adjust for 15 questions
-    } else {
-      setTimeLeft(10 * 60); // Default 10 minutes for Python Basics
-      setAnswers(Array(10).fill(null)); // Default 10 questions
+    if (examId) {
+      // Assuming the duration_mins comes from the initial exams API, we'll use a mapping or fetch it again if needed
+      const examDuration = {
+        '1': 60, // Python Fundamentals
+        '2': 45, // Vite JS Framework
+        '3': 90, // Microsoft Azure Cloud
+      }[examId] || 60; // Default to 60 minutes if not found
+      setTimeLeft(examDuration * 60); // Convert to seconds
+      setAnswers(new Array(questions.length).fill(null));
     }
-  }, [examId]);
+  }, [examId, questions]);
 
   // Timer functionality
   useEffect(() => {
@@ -85,13 +87,13 @@ function App() {
   const handleOptionClick = (optionId) => {
     if (!selectedOption) {
       setSelectedOption(optionId);
-      const selected = questions[currentQuestionIndex].options.find(
+      const selected = questions[currentQuestionIndex]?.options.find(
         (opt) => opt.id === optionId
       );
       const newAnswers = [...answers];
       newAnswers[currentQuestionIndex] = optionId;
       setAnswers(newAnswers);
-      if (selected.isCorrect) {
+      if (selected?.isCorrect) {
         setScore(score + 1);
       }
     }
@@ -102,7 +104,7 @@ function App() {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedOption(answers[currentQuestionIndex + 1]);
     } else {
-      setShowSubmitModal(true); // Show confirmation modal on last question
+      setShowSubmitModal(true);
     }
   };
 
@@ -124,8 +126,13 @@ function App() {
     setScore(0);
     setExamCompleted(false);
     setSelectedOption(null);
-    setTimeLeft(examId === '2' ? 15 * 60 : 10 * 60);
-    setAnswers(examId === '2' ? Array(15).fill(null) : Array(10).fill(null));
+    const examDuration = {
+      '1': 60,
+      '2': 45,
+      '3': 90,
+    }[examId] || 60;
+    setTimeLeft(examDuration * 60);
+    setAnswers(new Array(questions.length).fill(null));
     setShowSubmitModal(false);
   };
 
