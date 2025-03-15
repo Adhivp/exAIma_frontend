@@ -14,7 +14,7 @@ function ExamScreen({
   handleNextQuestion,
   handlePrevQuestion,
   jumpToQuestion,
-  onSubmit, // Use this prop instead of local handleSubmit
+  onSubmit,
   showSubmitModal,
   setShowSubmitModal,
   transformedQuestions,
@@ -23,6 +23,52 @@ function ExamScreen({
   const { state } = location;
   const { examId, examName = 'Exam', durationMins = 60 } = state || {};
   const [localTimeLeft, setLocalTimeLeft] = useState(timeLeft || durationMins * 60);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningTimer, setWarningTimer] = useState(null);
+
+  // Enter fullscreen on mount and set up restrictions
+  useEffect(() => {
+    const enterFullScreen = async () => {
+      try {
+        await document.documentElement.requestFullscreen();
+        setIsFullScreen(true);
+      } catch (err) {
+        console.error('Failed to enter fullscreen:', err);
+      }
+    };
+    enterFullScreen();
+
+    // Disable context menu and specific keys
+    document.addEventListener('contextmenu', preventDefault);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', preventDefault);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Detect alt-tab or tab switching
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isFullScreen) {
+        setShowWarning(true);
+        const timer = setTimeout(() => {
+          setShowWarning(false);
+          onSubmit(); // Submit exam if not returned within 4 seconds
+          exitFullScreen();
+        }, 4000);
+        setWarningTimer(timer);
+      } else {
+        clearTimeout(warningTimer);
+        setShowWarning(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isFullScreen, onSubmit]);
 
   // Timer functionality
   useEffect(() => {
@@ -32,7 +78,8 @@ function ExamScreen({
         setLocalTimeLeft((prevTime) => {
           if (prevTime <= 1) {
             clearInterval(timer);
-            onSubmit(); // Call onSubmit from props when time runs out
+            onSubmit();
+            exitFullScreen();
             return 0;
           }
           return prevTime - 1;
@@ -42,13 +89,34 @@ function ExamScreen({
     return () => clearInterval(timer);
   }, [localTimeLeft, onSubmit]);
 
-  // Load answers from localStorage on mount
+  // Load answers from localStorage
   useEffect(() => {
     const savedAnswers = localStorage.getItem(`exam_${examId}_answers`);
     if (savedAnswers) {
       setAnswers(JSON.parse(savedAnswers));
     }
   }, [examId, setAnswers]);
+
+  // Utility functions
+  const preventDefault = (e) => e.preventDefault();
+
+  const handleKeyDown = (e) => {
+    // Disable Escape, F12, and Ctrl+Shift+I
+    if (e.key === 'Escape' || e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+      e.preventDefault();
+    }
+  };
+
+  const exitFullScreen = async () => {
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+        setIsFullScreen(false);
+      } catch (err) {
+        console.error('Failed to exit fullscreen:', err);
+      }
+    }
+  };
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -272,6 +340,31 @@ function ExamScreen({
         </div>
       </motion.div>
 
+      {/* Warning Modal for Alt-Tab */}
+      <AnimatePresence>
+        {showWarning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 20 }}
+              className="bg-white rounded-xl p-6 max-w-sm shadow-2xl text-center"
+            >
+              <h2 className="text-xl font-bold text-red-600 mb-4">Warning!</h2>
+              <p className="text-gray-600 mb-6">
+                You have left the exam screen. Return within 4 seconds or the exam will end.
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Submit Modal */}
       <AnimatePresence>
         {showSubmitModal && (
           <motion.div
@@ -294,7 +387,10 @@ function ExamScreen({
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={onSubmit} // Call onSubmit from props
+                  onClick={() => {
+                    onSubmit();
+                    exitFullScreen();
+                  }}
                   className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
                 >
                   Yes, Submit
