@@ -15,6 +15,7 @@ function App() {
   const [tabSwitchWarning, setTabSwitchWarning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(10 * 60); // 10 minutes in seconds
   const [answers, setAnswers] = useState(Array(10).fill(null));
+  const [showSubmitModal, setShowSubmitModal] = useState(false); // New state for submit modal
 
   // Timer functionality
   useEffect(() => {
@@ -82,18 +83,11 @@ function App() {
   };
 
   const handleNextQuestion = () => {
-    if (selectedOption) {
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setSelectedOption(answers[currentQuestionIndex + 1]);
-      } else {
-        setExamCompleted(true);
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch((err) =>
-            console.log('Error exiting fullscreen:', err)
-          );
-        }
-      }
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedOption(answers[currentQuestionIndex + 1]);
+    } else {
+      setShowSubmitModal(true); // Show confirmation modal instead of immediate completion
     }
   };
 
@@ -117,6 +111,17 @@ function App() {
     setSelectedOption(null);
     setTimeLeft(10 * 60);
     setAnswers(Array(10).fill(null));
+    setShowSubmitModal(false);
+  };
+
+  const onSubmit = () => {
+    setExamCompleted(true);
+    setShowSubmitModal(false);
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) =>
+        console.log('Error exiting fullscreen:', err)
+      );
+    }
   };
 
   return (
@@ -142,6 +147,9 @@ function App() {
             handleNextQuestion={handleNextQuestion}
             handlePrevQuestion={handlePrevQuestion}
             jumpToQuestion={jumpToQuestion}
+            onSubmit={onSubmit}
+            showSubmitModal={showSubmitModal}
+            setShowSubmitModal={setShowSubmitModal}
           />
         )}
       </AnimatePresence>

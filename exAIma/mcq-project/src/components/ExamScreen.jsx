@@ -11,6 +11,9 @@ function ExamScreen({
   handleNextQuestion,
   handlePrevQuestion,
   jumpToQuestion,
+  onSubmit, // New prop to handle final submission
+  showSubmitModal, // New prop to control submit modal visibility
+  setShowSubmitModal, // New prop to toggle submit modal
 }) {
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -134,12 +137,8 @@ function ExamScreen({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleNextQuestion}
-            className={`flex-1 py-3 rounded-xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 ${
-              selectedOption
-                ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg'
-                : 'bg-gray-400 cursor-not-allowed'
-            }`}
-            disabled={!selectedOption}
+            className="flex-1 py-3 rounded-xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg"
+            // Removed disabled and conditional styling to make "Next" always visible
           >
             {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish'}{' '}
             <FaChevronRight className="text-sm" />
@@ -213,6 +212,48 @@ function ExamScreen({
           </div>
         </div>
       </motion.div>
+
+      {/* Submit Confirmation Modal */}
+      <AnimatePresence>
+        {showSubmitModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 20 }}
+              className="bg-white rounded-xl p-6 max-w-sm shadow-2xl text-center"
+            >
+              <h2 className="text-xl font-bold text-green-800 mb-4">Finish Exam?</h2>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to submit your answers and end the exam?
+              </p>
+              <div className="flex gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onSubmit}
+                  className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
+                >
+                  Yes, Submit
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowSubmitModal(false)}
+                  className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-all duration-300 font-medium"
+                >
+                  Cancel
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
