@@ -25,6 +25,7 @@ export default function UserPage() {
         });
 
         if (response.ok) {
+            // console.log('API Response Body:', data);
           const data = await response.json();
           setExams(data);
         } else if (response.status === 403) {

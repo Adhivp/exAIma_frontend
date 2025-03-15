@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { FaCheckCircle, FaRegClock, FaChevronRight } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 function ExamScreen({
   currentQuestionIndex,
@@ -20,9 +21,11 @@ function ExamScreen({
   transformedQuestions,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { state } = location;
-  const { examName = 'Exam', durationMins = 60 } = state || {};
+  const { examId, examName = 'Exam', durationMins = 60 } = state || {};
   const [localTimeLeft, setLocalTimeLeft] = useState(timeLeft || durationMins * 60);
+  const [examResults, setExamResults] = useState(null);
 
   // Timer functionality
   useEffect(() => {
@@ -32,7 +35,7 @@ function ExamScreen({
         setLocalTimeLeft((prevTime) => {
           if (prevTime <= 1) {
             clearInterval(timer);
-            onSubmit();
+            handleSubmit();
             return 0;
           }
           return prevTime - 1;
@@ -40,12 +43,80 @@ function ExamScreen({
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [localTimeLeft, onSubmit]);
+  }, [localTimeLeft]);
+
+  // Load answers from cookies on mount
+  useEffect(() => {
+    const savedAnswers = Cookies.get(`exam_${examId}_answers`);
+    if (savedAnswers) {
+      setAnswers(JSON.parse(savedAnswers));
+    }
+  }, [examId, setAnswers]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleCustomOptionClick = (optionId) => {
+    setSelectedOption(optionId);
+    const newAnswers = [...answers];
+    newAnswers[currentQuestionIndex] = optionId;
+    setAnswers(newAnswers);
+
+    // Store in cookies
+    const cookieData = {
+      exam_id: examId,
+      answers: transformedQuestions.map((q, index) => ({
+        question_id: q.id,
+        selected_option: newAnswers[index] || '',
+      })),
+    };
+    Cookies.set(`exam_${examId}_answers`, JSON.stringify(newAnswers), { expires: 1 }); // Expires in 1 day
+  };
+
+  const handleSubmit = async () => {
+    const tokenType = localStorage.getItem('token_type');
+    const accessToken = localStorage.getItem('access_token');
+
+    const submissionData = {
+      exam_id: examId,
+      answers: transformedQuestions.map((q, index) => ({
+        question_id: q.id,
+        selected_option: answers[index] || '',
+      })),
+    };
+
+    try {
+      const response = await fetch('http://4.240.76.3:8000/exams/submit', {
+        method: 'POST',
+        headers: {
+          'Authorization': `${tokenType} ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setExamResults(result);
+        Cookies.remove(`exam_${examId}_answers`); // Clear cookies after submission
+        navigate('/result', {
+          state: {
+            examResults: result,
+            timeLeft: localTimeLeft,
+            totalQuestions: transformedQuestions.length,
+          },
+        });
+      } else {
+        console.error('Submission failed:', await response.text());
+        alert('Failed to submit exam. Please try again.');
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert('Network error. Please check your connection.');
+    }
   };
 
   if (!transformedQuestions || transformedQuestions.length === 0) {
@@ -60,13 +131,6 @@ function ExamScreen({
       </motion.div>
     );
   }
-
-  const handleCustomOptionClick = (optionId) => {
-    setSelectedOption(optionId);
-    const newAnswers = [...answers];
-    newAnswers[currentQuestionIndex] = optionId;
-    setAnswers(newAnswers);
-  };
 
   return (
     <motion.div
@@ -183,7 +247,11 @@ function ExamScreen({
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleNextQuestion}
+            onClick={
+              currentQuestionIndex < transformedQuestions.length - 1
+                ? handleNextQuestion
+                : () => setShowSubmitModal(true)
+            }
             className="flex-1 py-3 rounded-xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg"
           >
             {currentQuestionIndex < transformedQuestions.length - 1 ? 'Next' : 'Finish'}{' '}

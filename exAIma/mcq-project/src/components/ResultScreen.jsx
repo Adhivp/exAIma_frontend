@@ -1,7 +1,17 @@
 import { FaArrowRight, FaTrophy } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-function ResultScreen({ examResults, timeLeft, resetExam, totalQuestions }) {
+function ResultScreen() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state } = location;
+  const { examResults, timeLeft, totalQuestions } = state || {};
+
+  const resetExam = () => {
+    navigate('/'); // Redirect to home or wherever you want
+  };
+
   if (!examResults) {
     return (
       <motion.div

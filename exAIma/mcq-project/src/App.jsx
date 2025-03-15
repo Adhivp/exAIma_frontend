@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion'; // Ensure motion is imported
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import WelcomeScreen from './components/WelcomeScreen';
 import ExamScreen from './components/ExamScreen';
 import ResultScreen from './components/ResultScreen';
@@ -48,19 +49,30 @@ function App() {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('Fetched questions:', data); // Debug log
+          console.log('Fetched questions:', data);
           const transformed = data.questions.map((q) => ({
             id: q.id,
             text: q.question_text,
             options: [
-              { id: 'a', text: q.option_a, isCorrect: q.correct_option === 'a' },
-              { id: 'b', text: q.option_b, isCorrect: q.correct_option === 'b' },
-              { id: 'c', text: q.option_c, isCorrect: q.correct_option === 'c' },
-              { id: 'd', text: q.option_d, isCorrect: q.correct_option === 'd' },
+              { id: 'A', text: q.option_a },
+              { id: 'B', text: q.option_b },
+              { id: 'C', text: q.option_c },
+              { id: 'D', text: q.option_d },
             ],
           }));
           setTransformedQuestions(transformed);
-          setAnswers(new Array(transformed.length).fill(null));
+          const initialAnswers = new Array(transformed.length).fill(null);
+          setAnswers(initialAnswers);
+
+          // Load saved answers from cookies if available
+          const savedAnswers = Cookies.get(`exam_${examId}_answers`);
+          if (savedAnswers) {
+            const parsedAnswers = JSON.parse(savedAnswers);
+            if (parsedAnswers.length === transformed.length) {
+              setAnswers(parsedAnswers);
+              setSelectedOption(parsedAnswers[currentQuestionIndex] || null);
+            }
+          }
         } else if (response.status === 403) {
           setError('Access denied. Please log in again.');
           localStorage.clear();
@@ -71,7 +83,7 @@ function App() {
         }
       } catch (error) {
         setError('Network error. Please check your connection.');
-        console.error('Fetch error:', error);
+        console.error('Fetch exams error:', error); // Updated to match your snippet
       } finally {
         setLoading(false);
       }
@@ -139,6 +151,9 @@ function App() {
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = optionId;
     setAnswers(newAnswers);
+
+    // Save answers to cookies
+    Cookies.set(`exam_${examId}_answers`, JSON.stringify(newAnswers), { expires: 1 });
   };
 
   const handleNextQuestion = () => {
@@ -171,6 +186,7 @@ function App() {
     setAnswers(new Array(transformedQuestions.length).fill(null));
     setShowSubmitModal(false);
     setExamResults(null);
+    Cookies.remove(`exam_${examId}_answers`);
     navigate('/user');
   };
 
@@ -192,10 +208,10 @@ function App() {
         exam_id: examId,
         answers: transformedQuestions.map((question, idx) => ({
           question_id: question.id,
-          selected_option: answers[idx] || "", // Default to empty string if not answered
+          selected_option: answers[idx] || '',
         })),
       };
-      console.log('Submit payload:', payload); // Debug log
+      console.log('Submit payload:', payload);
 
       const response = await fetch('http://4.240.76.3:8000/exams/submit', {
         method: 'POST',
@@ -208,8 +224,9 @@ function App() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Submit response:', data); // Debug log
+        console.log('Submit response:', data);
         setExamResults(data);
+        Cookies.remove(`exam_${examId}_answers`);
       } else if (response.status === 403) {
         setError('Access denied. Please log in again.');
         localStorage.clear();
