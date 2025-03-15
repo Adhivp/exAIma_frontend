@@ -19,7 +19,7 @@ export default function ProctoringPage() {
       
       {/* Main Content */}
       <div className="flex flex-1 justify-center items-center p-8">
-        <div className="max-w-4xl flex flex-col md:flex-row items-center">
+        <div className="max-w-6xl flex flex-col md:flex-row items-center">
           {/* Text Content */}
           <div className="flex-1 text-center md:text-left">
             <h2 className="text-4xl font-bold text-gray-900">
