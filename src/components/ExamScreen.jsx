@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaCheckCircle, FaRegClock, FaChevronRight } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import TabSwitchWarning from './TabSwitchWarning'; // Adjust the import path as needed
 
 function ExamScreen({
   currentQuestionIndex,
@@ -25,7 +26,6 @@ function ExamScreen({
   const [localTimeLeft, setLocalTimeLeft] = useState(timeLeft || durationMins * 60);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
-  const [warningTimer, setWarningTimer] = useState(null);
 
   // Enter fullscreen on mount and set up restrictions
   useEffect(() => {
@@ -39,7 +39,6 @@ function ExamScreen({
     };
     enterFullScreen();
 
-    // Disable context menu and specific keys
     document.addEventListener('contextmenu', preventDefault);
     document.addEventListener('keydown', handleKeyDown);
 
@@ -54,21 +53,14 @@ function ExamScreen({
     const handleVisibilityChange = () => {
       if (document.hidden && isFullScreen) {
         setShowWarning(true);
-        const timer = setTimeout(() => {
-          setShowWarning(false);
-          onSubmit(); // Submit exam if not returned within 4 seconds
-          exitFullScreen();
-        }, 4000);
-        setWarningTimer(timer);
       } else {
-        clearTimeout(warningTimer);
         setShowWarning(false);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isFullScreen, onSubmit]);
+  }, [isFullScreen]);
 
   // Timer functionality
   useEffect(() => {
@@ -101,7 +93,6 @@ function ExamScreen({
   const preventDefault = (e) => e.preventDefault();
 
   const handleKeyDown = (e) => {
-    // Disable Escape, F12, and Ctrl+Shift+I
     if (e.key === 'Escape' || e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
       e.preventDefault();
     }
@@ -130,6 +121,16 @@ function ExamScreen({
     newAnswers[currentQuestionIndex] = optionId;
     setAnswers(newAnswers);
     localStorage.setItem(`exam_${examId}_answers`, JSON.stringify(newAnswers));
+  };
+
+  const handleWarningTimeout = () => {
+    setShowWarning(false);
+    onSubmit(); // Submit current answers
+    exitFullScreen();
+  };
+
+  const clearWarning = () => {
+    setShowWarning(false);
   };
 
   if (!transformedQuestions || transformedQuestions.length === 0) {
@@ -340,27 +341,13 @@ function ExamScreen({
         </div>
       </motion.div>
 
-      {/* Warning Modal for Alt-Tab */}
+      {/* Tab Switch Warning with Countdown */}
       <AnimatePresence>
         {showWarning && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.8, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 20 }}
-              className="bg-white rounded-xl p-6 max-w-sm shadow-2xl text-center"
-            >
-              <h2 className="text-xl font-bold text-red-600 mb-4">Warning!</h2>
-              <p className="text-gray-600 mb-6">
-                You have left the exam screen. Return within 4 seconds or the exam will end.
-              </p>
-            </motion.div>
-          </motion.div>
+          <TabSwitchWarning
+            clearWarning={clearWarning}
+            onTimeout={handleWarningTimeout}
+          />
         )}
       </AnimatePresence>
 

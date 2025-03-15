@@ -1,6 +1,25 @@
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
-function TabSwitchWarning({ clearWarning }) {
+function TabSwitchWarning({ clearWarning, onTimeout }) {
+  const [countdown, setCountdown] = useState(4); // Start at 4 seconds
+
+  // Countdown timer logic
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          onTimeout(); // Trigger submission when countdown reaches 0
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [onTimeout]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -15,8 +34,11 @@ function TabSwitchWarning({ clearWarning }) {
         className="bg-white rounded-xl p-6 max-w-sm shadow-2xl text-center"
       >
         <h2 className="text-xl font-bold text-red-600 mb-4">Warning!</h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 mb-4">
           Switching tabs or losing focus during the exam is not allowed. Please stay on this page.
+        </p>
+        <p className="text-red-500 font-semibold mb-6">
+          Submitting in: {countdown} seconds
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }}
