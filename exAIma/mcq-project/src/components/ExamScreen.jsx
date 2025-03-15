@@ -166,8 +166,8 @@ function ExamScreen({
                 index === currentQuestionIndex
                   ? 'bg-green-500 text-white shadow-md ring-2 ring-green-300 ring-offset-2'
                   : answers[index] !== null
-                  ? 'bg-green-200 text-green-800'
-                  : 'bg-white text-gray-700 border border-gray-200'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-gray-700 border border-gray-200'
               }`}
             >
               {index + 1}
@@ -203,11 +203,11 @@ function ExamScreen({
               <span className="text-xs text-gray-600">Current Question</span>
             </div>
             <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-200 rounded-sm mr-2"></div>
+              <div className="w-4 h-4 bg-green-100 rounded-sm mr-2"></div>
               <span className="text-xs text-gray-600">Answered</span>
             </div>
             <div className="flex items-center">
-              <div className="w-4 h-4 bg-white border border-gray-200 rounded-sm mr-2"></div>
+              <div className="w-4 h-4 bg-red-200 border border-gray-200 rounded-sm mr-2"></div>
               <span className="text-xs text-gray-600">Unanswered</span>
             </div>
           </div>
