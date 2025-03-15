@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SuccessPopup from '../components/SuccessPopup';
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -7,6 +8,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
@@ -39,7 +41,7 @@ export default function RegisterPage() {
 
       if (response.ok) {
         // Successful registration
-        navigate('/login'); // Redirect to login page
+        setShowSuccess(true); // Show success popup
       } else {
         setError(data.detail || 'Registration failed. Please try again.');
       }
@@ -48,8 +50,13 @@ export default function RegisterPage() {
     }
   };
 
+  const handlePopupClose = () => {
+    setShowSuccess(false);
+    navigate('/login'); // Redirect to login page after popup closes
+  };
+
   return (
-    <div className="w-full h-screen bg-gray-100 flex items-center justify-center">
+    <div className="w-full h-screen bg-gray-100 flex items-center justify-center relative">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-2xl">
         <h2 className="text-2xl font-bold text-green-800 text-center mb-6">Register</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -112,6 +119,11 @@ export default function RegisterPage() {
           </a>
         </p>
       </div>
+      <SuccessPopup
+        message="Register successfully"
+        onClose={handlePopupClose}
+        open={showSuccess}
+      />
     </div>
   );
 }
