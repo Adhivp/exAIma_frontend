@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import WelcomeScreen from './components/WelcomeScreen';
 import ExamScreen from './components/ExamScreen';
 import ResultScreen from './components/ResultScreen';
@@ -13,9 +14,23 @@ function App() {
   const [score, setScore] = useState(0);
   const [examCompleted, setExamCompleted] = useState(false);
   const [tabSwitchWarning, setTabSwitchWarning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(10 * 60); // 10 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(10 * 60); // Default 10 minutes
   const [answers, setAnswers] = useState(Array(10).fill(null));
-  const [showSubmitModal, setShowSubmitModal] = useState(false); // New state for submit modal
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const examId = searchParams.get('examId');
+
+  // Set timeLeft based on exam duration (simplified mapping)
+  useEffect(() => {
+    if (examId === '2') {
+      setTimeLeft(15 * 60); // 15 minutes for Python Advanced
+      setAnswers(Array(15).fill(null)); // Adjust for 15 questions
+    } else {
+      setTimeLeft(10 * 60); // Default 10 minutes for Python Basics
+      setAnswers(Array(10).fill(null)); // Default 10 questions
+    }
+  }, [examId]);
 
   // Timer functionality
   useEffect(() => {
@@ -87,7 +102,7 @@ function App() {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedOption(answers[currentQuestionIndex + 1]);
     } else {
-      setShowSubmitModal(true); // Show confirmation modal instead of immediate completion
+      setShowSubmitModal(true); // Show confirmation modal on last question
     }
   };
 
@@ -109,8 +124,8 @@ function App() {
     setScore(0);
     setExamCompleted(false);
     setSelectedOption(null);
-    setTimeLeft(10 * 60);
-    setAnswers(Array(10).fill(null));
+    setTimeLeft(examId === '2' ? 15 * 60 : 10 * 60);
+    setAnswers(examId === '2' ? Array(15).fill(null) : Array(10).fill(null));
     setShowSubmitModal(false);
   };
 
@@ -134,7 +149,7 @@ function App() {
             score={score}
             timeLeft={timeLeft}
             resetExam={resetExam}
-            totalQuestions={questions.length}
+            totalQuestions={answers.length}
           />
         ) : (
           <ExamScreen
