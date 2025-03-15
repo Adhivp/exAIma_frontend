@@ -1,56 +1,88 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion'; // Ensure motion is imported
+import { useLocation, useNavigate } from 'react-router-dom';
 import WelcomeScreen from './components/WelcomeScreen';
 import ExamScreen from './components/ExamScreen';
 import ResultScreen from './components/ResultScreen';
 import TabSwitchWarning from './components/TabSwitchWarning';
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { state } = location;
+  const { examId, examName = 'Exam', durationMins = 60 } = state || {};
   const [examStarted, setExamStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [score, setScore] = useState(0);
   const [examCompleted, setExamCompleted] = useState(false);
   const [tabSwitchWarning, setTabSwitchWarning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0); // Will be set based on fetched data
+  const [timeLeft, setTimeLeft] = useState(durationMins * 60);
   const [answers, setAnswers] = useState([]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const location = useLocation();
-  const { state } = location;
-  const { examId, questions = [] } = state || {};
+  const [transformedQuestions, setTransformedQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [examResults, setExamResults] = useState(null);
 
-  // Set timeLeft and answers based on fetched exam data
+  // Fetch questions from API
   useEffect(() => {
-    if (examId) {
-      // Assuming the duration_mins comes from the initial exams API, we'll use a mapping or fetch it again if needed
-      const examDuration = {
-        '1': 60, // Python Fundamentals
-        '2': 45, // Vite JS Framework
-        '3': 90, // Microsoft Azure Cloud
-      }[examId] || 60; // Default to 60 minutes if not found
-      setTimeLeft(examDuration * 60); // Convert to seconds
-      setAnswers(new Array(questions.length).fill(null));
-    }
-  }, [examId, questions]);
+    const fetchQuestions = async () => {
+      const accessToken = localStorage.getItem('access_token');
+      const tokenType = localStorage.getItem('token_type');
+      if (!accessToken || !tokenType || !examId) {
+        setError('Authentication required or invalid exam ID. Please log in.');
+        setLoading(false);
+        navigate('/');
+        return;
+      }
 
-  // Timer functionality
-  useEffect(() => {
-    let timer;
-    if (examStarted && !examCompleted && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            clearInterval(timer);
-            setExamCompleted(true);
-            return 0;
-          }
-          return prevTime - 1;
+      try {
+        const response = await fetch(`http://4.240.76.3:8000/exams/${examId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `${tokenType} ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
         });
-      }, 1000);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Fetched questions:', data); // Debug log
+          const transformed = data.questions.map((q) => ({
+            id: q.id,
+            text: q.question_text,
+            options: [
+              { id: 'a', text: q.option_a, isCorrect: q.correct_option === 'a' },
+              { id: 'b', text: q.option_b, isCorrect: q.correct_option === 'b' },
+              { id: 'c', text: q.option_c, isCorrect: q.correct_option === 'c' },
+              { id: 'd', text: q.option_d, isCorrect: q.correct_option === 'd' },
+            ],
+          }));
+          setTransformedQuestions(transformed);
+          setAnswers(new Array(transformed.length).fill(null));
+        } else if (response.status === 403) {
+          setError('Access denied. Please log in again.');
+          localStorage.clear();
+          navigate('/');
+        } else {
+          const errorData = await response.json();
+          setError(errorData.detail || `Failed to load exam ${examId}.`);
+        }
+      } catch (error) {
+        setError('Network error. Please check your connection.');
+        console.error('Fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (examId) {
+      fetchQuestions();
+    } else {
+      setLoading(false);
     }
-    return () => clearInterval(timer);
-  }, [examStarted, examCompleted, timeLeft]);
+  }, [examId, navigate]);
 
   // Detect Tab Switching or Focus Loss
   useEffect(() => {
@@ -75,6 +107,24 @@ function App() {
     };
   }, [examStarted, examCompleted]);
 
+  // Timer functionality
+  useEffect(() => {
+    let timer;
+    if (examStarted && !examCompleted && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            handleSubmit();
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [examStarted, examCompleted, timeLeft]);
+
   const startExam = () => {
     setExamStarted(true);
     if (document.documentElement.requestFullscreen) {
@@ -85,24 +135,16 @@ function App() {
   };
 
   const handleOptionClick = (optionId) => {
-    if (!selectedOption) {
-      setSelectedOption(optionId);
-      const selected = questions[currentQuestionIndex]?.options.find(
-        (opt) => opt.id === optionId
-      );
-      const newAnswers = [...answers];
-      newAnswers[currentQuestionIndex] = optionId;
-      setAnswers(newAnswers);
-      if (selected?.isCorrect) {
-        setScore(score + 1);
-      }
-    }
+    setSelectedOption(optionId);
+    const newAnswers = [...answers];
+    newAnswers[currentQuestionIndex] = optionId;
+    setAnswers(newAnswers);
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
+    if (currentQuestionIndex < transformedQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setSelectedOption(answers[currentQuestionIndex + 1]);
+      setSelectedOption(answers[currentQuestionIndex + 1] || null);
     } else {
       setShowSubmitModal(true);
     }
@@ -111,40 +153,104 @@ function App() {
   const handlePrevQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
-      setSelectedOption(answers[currentQuestionIndex - 1]);
+      setSelectedOption(answers[currentQuestionIndex - 1] || null);
     }
   };
 
   const jumpToQuestion = (index) => {
     setCurrentQuestionIndex(index);
-    setSelectedOption(answers[index]);
+    setSelectedOption(answers[index] || null);
   };
 
   const resetExam = () => {
     setExamStarted(false);
     setCurrentQuestionIndex(0);
-    setScore(0);
     setExamCompleted(false);
     setSelectedOption(null);
-    const examDuration = {
-      '1': 60,
-      '2': 45,
-      '3': 90,
-    }[examId] || 60;
-    setTimeLeft(examDuration * 60);
-    setAnswers(new Array(questions.length).fill(null));
+    setTimeLeft(durationMins * 60);
+    setAnswers(new Array(transformedQuestions.length).fill(null));
     setShowSubmitModal(false);
+    setExamResults(null);
+    navigate('/user');
   };
 
-  const onSubmit = () => {
-    setExamCompleted(true);
+  const handleSubmit = async () => {
+    setSubmitting(true);
     setShowSubmitModal(false);
+    setExamCompleted(true);
     if (document.fullscreenElement) {
       document.exitFullscreen().catch((err) =>
         console.log('Error exiting fullscreen:', err)
       );
     }
+
+    const accessToken = localStorage.getItem('access_token');
+    const tokenType = localStorage.getItem('token_type');
+
+    try {
+      const payload = {
+        exam_id: examId,
+        answers: transformedQuestions.map((question, idx) => ({
+          question_id: question.id,
+          selected_option: answers[idx] || "", // Default to empty string if not answered
+        })),
+      };
+      console.log('Submit payload:', payload); // Debug log
+
+      const response = await fetch('http://4.240.76.3:8000/exams/submit', {
+        method: 'POST',
+        headers: {
+          'Authorization': `${tokenType} ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Submit response:', data); // Debug log
+        setExamResults(data);
+      } else if (response.status === 403) {
+        setError('Access denied. Please log in again.');
+        localStorage.clear();
+        navigate('/');
+      } else if (response.status === 422) {
+        const errorData = await response.json();
+        setError(`Submission failed: ${errorData.detail || 'Invalid data format'}`);
+      } else {
+        const errorData = await response.json();
+        setError(`Submission failed: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      setError('Network error during submission. Please check your connection.');
+      console.error('Submit error:', error);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading || submitting) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-100 p-6"
+      >
+        <p className="text-green-800 font-semibold">
+          {loading ? 'Loading exam...' : 'Submitting your answers...'}
+        </p>
+      </motion.div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-100">
+        <p className="text-red-500 text-center">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-100 p-6">
@@ -153,25 +259,27 @@ function App() {
           <WelcomeScreen startExam={startExam} />
         ) : examCompleted ? (
           <ResultScreen
-            score={score}
+            examResults={examResults}
             timeLeft={timeLeft}
             resetExam={resetExam}
-            totalQuestions={answers.length}
+            totalQuestions={transformedQuestions.length}
           />
         ) : (
           <ExamScreen
-            questions={questions}
             currentQuestionIndex={currentQuestionIndex}
             selectedOption={selectedOption}
+            setSelectedOption={setSelectedOption}
             answers={answers}
+            setAnswers={setAnswers}
             timeLeft={timeLeft}
             handleOptionClick={handleOptionClick}
             handleNextQuestion={handleNextQuestion}
             handlePrevQuestion={handlePrevQuestion}
             jumpToQuestion={jumpToQuestion}
-            onSubmit={onSubmit}
+            onSubmit={handleSubmit}
             showSubmitModal={showSubmitModal}
             setShowSubmitModal={setShowSubmitModal}
+            transformedQuestions={transformedQuestions}
           />
         )}
       </AnimatePresence>

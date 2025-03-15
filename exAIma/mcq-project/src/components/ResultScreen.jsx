@@ -1,14 +1,39 @@
 import { FaArrowRight, FaTrophy } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
-function ResultScreen({ score, timeLeft, resetExam, totalQuestions }) {
+function ResultScreen({ examResults, timeLeft, resetExam, totalQuestions }) {
+  if (!examResults) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="min-h-screen flex items-center justify-center bg-white rounded-2xl shadow-2xl p-8"
+      >
+        <p className="text-red-500 font-semibold">No results available. Please try again.</p>
+      </motion.div>
+    );
+  }
+
+  const {
+    obtained_marks = 0,
+    total_marks = totalQuestions,
+    percentage = 0,
+    correct_answers = 0,
+    wrong_answers = 0,
+    completed_at = new Date().toISOString(),
+    question_results = [],
+  } = examResults;
+
   const getPerformanceLevel = () => {
-    const percentage = (score / totalQuestions) * 100;
     if (percentage >= 90) return { text: 'Excellent', color: 'text-green-500' };
     if (percentage >= 75) return { text: 'Good', color: 'text-blue-500' };
     if (percentage >= 60) return { text: 'Average', color: 'text-yellow-500' };
     return { text: 'Needs Improvement', color: 'text-red-500' };
   };
+
+  const totalTime = totalQuestions * 60;
+  const timeUsed = totalTime - timeLeft;
 
   return (
     <motion.div
@@ -59,35 +84,75 @@ function ResultScreen({ score, timeLeft, resetExam, totalQuestions }) {
           <div className="flex items-center justify-center mt-4">
             <div className="w-32 h-32 rounded-full flex items-center justify-center border-8 border-green-200 relative">
               <span className="text-3xl font-bold text-green-700">
-                {score}/{totalQuestions}
+                {obtained_marks}/{total_marks}
               </span>
               <motion.div
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: `conic-gradient(#16a34a ${(score / totalQuestions) * 100}%, transparent 0)`,
+                  background: `conic-gradient(#16a34a ${percentage}%, transparent 0)`,
                   maskImage: 'radial-gradient(transparent 60%, #000 62%)',
                 }}
               />
             </div>
           </div>
           <p className={`text-lg font-semibold mt-4 ${getPerformanceLevel().color}`}>
-            {getPerformanceLevel().text}
+            {getPerformanceLevel().text} ({percentage.toFixed(2)}%)
           </p>
           <p className="text-gray-600 mt-2">
-            {score === totalQuestions
+            {percentage === 100
               ? 'Perfect score! Excellent work!'
-              : score >= totalQuestions * 0.7
-              ? 'Good job! You have a strong understanding of Python basics.'
-              : 'Keep practicing! You’re on your way to mastering Python.'}
+              : percentage >= 70
+              ? 'Good job! You have a strong understanding.'
+              : 'Keep practicing! You’re on your way to mastering.'}
           </p>
         </div>
 
         <div className="border-t border-green-200 pt-4">
-          <h3 className="font-medium text-green-800 mb-2">Time Used:</h3>
+          <h3 className="font-medium text-green-800 mb-2">Summary:</h3>
           <p className="text-gray-700">
-            {10 - Math.ceil(timeLeft / 60)} minutes{' '}
-            {timeLeft % 60 === 0 ? '' : 60 - (timeLeft % 60) + ' seconds'}
+            Correct Answers: <span className="font-semibold text-green-600">{correct_answers}</span>
           </p>
+          <p className="text-gray-700">
+            Wrong Answers: <span className="font-semibold text-red-600">{wrong_answers}</span>
+          </p>
+          <p className="text-gray-700">
+            Time Used: {Math.floor(timeUsed / 60)} minutes{' '}
+            {timeUsed % 60 === 0 ? '' : timeUsed % 60 + ' seconds'}
+          </p>
+          <p className="text-gray-700">
+            Completed At: {new Date(completed_at).toLocaleString()}
+          </p>
+        </div>
+
+        <div className="border-t border-green-200 pt-4 mt-4">
+          <h3 className="font-medium text-green-800 mb-2">Question Results:</h3>
+          <div className="space-y-2">
+            {Array.isArray(question_results) &&
+              question_results.map((result, index) => (
+                <div key={result.question_id || index} className="text-gray-700">
+                  <p>
+                    <span className="font-semibold">Question {index + 1}:</span>{' '}
+                    {result.question_text || 'Question text unavailable'}
+                  </p>
+                  <p>
+                    Your Answer:{' '}
+                    <span className="font-semibold">
+                      {result.selected_option || 'Not answered'}
+                    </span>
+                  </p>
+                  <p>
+                    Correct Answer:{' '}
+                    <span className="font-semibold">{result.correct_option || 'N/A'}</span>
+                  </p>
+                  <p>
+                    Status:{' '}
+                    <span className={result.is_correct ? 'text-green-600' : 'text-red-600'}>
+                      {result.is_correct ? 'Correct' : 'Incorrect'}
+                    </span>
+                  </p>
+                </div>
+              ))}
+          </div>
         </div>
       </motion.div>
 

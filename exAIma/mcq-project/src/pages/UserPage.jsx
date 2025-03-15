@@ -13,7 +13,6 @@ export default function UserPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch exams from API
   useEffect(() => {
     const fetchExams = async () => {
       try {
@@ -30,18 +29,15 @@ export default function UserPage() {
           setExams(data);
         } else if (response.status === 403) {
           setError('Access denied. Please log in again.');
-          // Optionally, clear invalid token and redirect to login
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('token_type');
-          localStorage.removeItem('isAuthenticated');
-          localStorage.removeItem('user');
+          localStorage.clear();
           navigate('/');
         } else {
           const errorData = await response.json();
-          setError(errorData.detail || 'Failed to fetch exams. Please try again.');
+          setError(errorData.detail || 'Failed to fetch exams.');
         }
       } catch (error) {
         setError('Network error. Please check your connection.');
+        console.error('Fetch exams error:', error);
       } finally {
         setLoading(false);
       }
@@ -68,21 +64,16 @@ export default function UserPage() {
 
       if (response.ok) {
         const data = await response.json();
-        // Navigate to exam page with questions and exam details in state
         navigate('/exam', {
           state: {
             examId,
-            questions: data.questions || [],
-            examName: data.exam_name,
-            durationMins: data.duration_mins,
+            examName: data.exam_name || 'Exam',
+            durationMins: data.duration_mins || 60,
           },
         });
       } else if (response.status === 403) {
         setError('Access denied. Please log in again.');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('token_type');
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('user');
+        localStorage.clear();
         navigate('/');
       } else {
         const errorData = await response.json();
@@ -90,6 +81,7 @@ export default function UserPage() {
       }
     } catch (error) {
       setError('Network error. Please check your connection.');
+      console.error('Start exam error:', error);
     }
   };
 
@@ -103,24 +95,16 @@ export default function UserPage() {
       });
 
       if (response.ok) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('token_type');
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('user');
+        localStorage.clear();
         setShowSuccess(true);
       } else {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('token_type');
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('user');
+        localStorage.clear();
         navigate('/');
       }
     } catch (error) {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('token_type');
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('user');
+      localStorage.clear();
       navigate('/');
+      console.error('Logout error:', error);
     }
   };
 
@@ -130,7 +114,15 @@ export default function UserPage() {
   };
 
   if (loading) {
-    return <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center">Loading...</div>;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="w-full min-h-screen bg-gray-100 flex items-center justify-center"
+      >
+        <p className="text-green-800 font-semibold">Loading...</p>
+      </motion.div>
+    );
   }
 
   return (
@@ -156,9 +148,9 @@ export default function UserPage() {
             onClick={() => handleStartExam(exam.id)}
           >
             <h3 className="text-xl font-semibold text-gray-900">{exam.exam_name}</h3>
-            <p className="text-gray-600 mt-2">{exam.description}</p>
-            <p className="text-gray-600">Questions: {exam.number_of_questions}</p>
-            <p className="text-gray-600">Duration: {exam.duration_mins} mins</p>
+            <p className="text-gray-600 mt-2">{exam.description || 'No description'}</p>
+            <p className="text-gray-600">Questions: {exam.number_of_questions || 0}</p>
+            <p className="text-gray-600">Duration: {exam.duration_mins || 60} mins</p>
             <button className="mt-4 w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300">
               Start Exam
             </button>

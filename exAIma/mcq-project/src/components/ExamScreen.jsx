@@ -6,7 +6,9 @@ import { useLocation } from 'react-router-dom';
 function ExamScreen({
   currentQuestionIndex,
   selectedOption,
+  setSelectedOption,
   answers,
+  setAnswers,
   timeLeft,
   handleOptionClick,
   handleNextQuestion,
@@ -15,97 +17,22 @@ function ExamScreen({
   onSubmit,
   showSubmitModal,
   setShowSubmitModal,
+  transformedQuestions,
 }) {
   const location = useLocation();
   const { state } = location;
-  const { examId, questions = [], examName = 'Exam', durationMins = 60 } = state || {};
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { examName = 'Exam', durationMins = 60 } = state || {};
   const [localTimeLeft, setLocalTimeLeft] = useState(timeLeft || durationMins * 60);
-  const accessToken = localStorage.getItem('access_token');
-  const tokenType = localStorage.getItem('token_type');
-  const [transformedQuestions, setTransformedQuestions] = useState([]);
-
-  // Transform the API questions into the expected format
-  useEffect(() => {
-    if (questions.length > 0) {
-      const transformed = questions.map((q) => ({
-        id: q.id,
-        text: q.question_text,
-        options: [
-          { id: 'a', text: q.option_a, isCorrect: false }, // isCorrect is assumed; adjust if available
-          { id: 'b', text: q.option_b, isCorrect: false },
-          { id: 'c', text: q.option_c, isCorrect: false },
-          { id: 'd', text: q.option_d, isCorrect: false },
-        ],
-      }));
-      setTransformedQuestions(transformed);
-      setLoading(false);
-    } else {
-      // Fetch questions if not provided (fallback)
-      const fetchQuestions = async () => {
-        try {
-          setLoading(true);
-          const response = await fetch(`http://4.240.76.3:8000/exams/${examId}`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `${tokenType} ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const transformed = data.questions.map((q) => ({
-              id: q.id,
-              text: q.question_text,
-              options: [
-                { id: 'a', text: q.option_a, isCorrect: false },
-                { id: 'b', text: q.option_b, isCorrect: false },
-                { id: 'c', text: q.option_c, isCorrect: false },
-                { id: 'd', text: q.option_d, isCorrect: false },
-              ],
-            }));
-            setTransformedQuestions(transformed);
-            const durationMins = data.duration_mins || 60;
-            setLocalTimeLeft(durationMins * 60);
-          } else if (response.status === 403) {
-            setError('Access denied. Please log in again.');
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('token_type');
-            localStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('user');
-            window.location.href = '/';
-          } else {
-            const errorData = await response.json();
-            setError(errorData.detail || `Failed to load exam ${examId}.`);
-          }
-        } catch (error) {
-          setError('Network error. Please check your connection.');
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      if (examId && accessToken && tokenType) {
-        fetchQuestions();
-      } else {
-        setError('Authentication required. Please log in.');
-        setLoading(false);
-        window.location.href = '/';
-      }
-    }
-  }, [examId, questions, tokenType, accessToken]);
 
   // Timer functionality
   useEffect(() => {
     let timer;
-    if (!loading && localTimeLeft > 0) {
+    if (localTimeLeft > 0) {
       timer = setInterval(() => {
         setLocalTimeLeft((prevTime) => {
           if (prevTime <= 1) {
             clearInterval(timer);
-            onSubmit(); // Auto-submit when time runs out
+            onSubmit();
             return 0;
           }
           return prevTime - 1;
@@ -113,7 +40,7 @@ function ExamScreen({
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [loading, localTimeLeft, onSubmit]);
+  }, [localTimeLeft, onSubmit]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -121,33 +48,7 @@ function ExamScreen({
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (loading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl flex items-center justify-center"
-      >
-        <p className="text-green-800 font-semibold">Loading exam...</p>
-      </motion.div>
-    );
-  }
-
-  if (error) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl flex items-center justify-center"
-      >
-        <p className="text-red-500 font-semibold">{error}</p>
-      </motion.div>
-    );
-  }
-
-  if (transformedQuestions.length === 0) {
+  if (!transformedQuestions || transformedQuestions.length === 0) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -159,6 +60,13 @@ function ExamScreen({
       </motion.div>
     );
   }
+
+  const handleCustomOptionClick = (optionId) => {
+    setSelectedOption(optionId);
+    const newAnswers = [...answers];
+    newAnswers[currentQuestionIndex] = optionId;
+    setAnswers(newAnswers);
+  };
 
   return (
     <motion.div
@@ -224,7 +132,7 @@ function ExamScreen({
                 transition={{ duration: 0.3, delay: idx * 0.1 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => handleOptionClick(option.id)}
+                onClick={() => handleCustomOptionClick(option.id)}
                 className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                   selectedOption === option.id
                     ? 'border-green-500 bg-green-50 shadow-md'
@@ -351,7 +259,6 @@ function ExamScreen({
         </div>
       </motion.div>
 
-      {/* Submit Confirmation Modal */}
       <AnimatePresence>
         {showSubmitModal && (
           <motion.div
@@ -374,7 +281,7 @@ function ExamScreen({
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={onSubmit}
+                  onClick={handleSubmit}
                   className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
                 >
                   Yes, Submit
