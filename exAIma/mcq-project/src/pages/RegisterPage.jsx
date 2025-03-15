@@ -2,22 +2,43 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function RegisterPage() {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // Simulate API call (replace with real API integration)
-    if (email && password && name) {
-      // Successful registration
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('user', JSON.stringify({ email, name }));
-      navigate('/user');
-    } else {
-      setError('Please fill all fields');
+    setError('');
+
+    const payload = {
+      username,
+      email,
+      full_name: fullName,
+      password,
+    };
+
+    try {
+      const response = await fetch('http://4.240.76.3:8000/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Successful registration
+        navigate('/login'); // Redirect to login page
+      } else {
+        setError(data.detail || 'Registration failed. Please try again.');
+      }
+    } catch (error) {
+      setError('Failed to connect to the server. Please try again later.');
     }
   };
 
@@ -28,13 +49,13 @@ export default function RegisterPage() {
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleRegister} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">Name</label>
+            <label className="block text-gray-700 font-medium mb-2">Username</label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Enter your name"
+              placeholder="Enter your username"
               required
             />
           </div>
@@ -46,6 +67,17 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Enter your email"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Enter your full name"
               required
             />
           </div>

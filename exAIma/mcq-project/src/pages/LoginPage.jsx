@@ -2,21 +2,43 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Simulate API call (replace with real API integration)
-    if (email === 'test@example.com' && password === 'password123') {
-      // Successful login
-      localStorage.setItem('isAuthenticated', 'true'); // Simple auth state
-      localStorage.setItem('user', JSON.stringify({ email, name: 'Test User' }));
-      navigate('/user');
-    } else {
-      setError('Invalid email or password');
+    setError('');
+
+    const payload = {
+      username,
+      password,
+    };
+
+    try {
+      const response = await fetch('http://4.240.76.3:8000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Successful login
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('token_type', data.token_type);
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('user', JSON.stringify({ username }));
+        navigate('/user');
+      } else {
+        setError(data.detail || 'Invalid username or password');
+      }
+    } catch (error) {
+      setError('Failed to connect to the server. Please try again later.');
     }
   };
 
@@ -27,13 +49,13 @@ export default function LoginPage() {
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">Email</label>
+            <label className="block text-gray-700 font-medium mb-2">Username</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Enter your email"
+              placeholder="Enter your username"
               required
             />
           </div>
