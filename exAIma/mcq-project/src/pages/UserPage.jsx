@@ -66,7 +66,7 @@ export default function UserPage() {
           setError(errorData.detail || 'Failed to fetch exams.');
         }
       } catch (error) {
-        setError('Network error. Please check your connection.');
+        setError('Sometthing went wrong');
         console.error('Fetch exams error:', error);
       } finally {
         setLoading(false);
