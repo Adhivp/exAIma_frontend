@@ -64,7 +64,6 @@ function App() {
           const initialAnswers = new Array(transformed.length).fill(null);
           setAnswers(initialAnswers);
 
-          // Load saved answers from cookies if available
           const savedAnswers = Cookies.get(`exam_${examId}_answers`);
           if (savedAnswers) {
             const parsedAnswers = JSON.parse(savedAnswers);
@@ -83,7 +82,7 @@ function App() {
         }
       } catch (error) {
         setError('Network error. Please check your connection.');
-        console.error('Fetch exams error:', error); // Updated to match your snippet
+        console.error('Fetch exams error:', error);
       } finally {
         setLoading(false);
       }
@@ -139,11 +138,6 @@ function App() {
 
   const startExam = () => {
     setExamStarted(true);
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch((err) =>
-        console.log('Error enabling fullscreen:', err)
-      );
-    }
   };
 
   const handleOptionClick = (optionId) => {
@@ -151,8 +145,6 @@ function App() {
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = optionId;
     setAnswers(newAnswers);
-
-    // Save answers to cookies
     Cookies.set(`exam_${examId}_answers`, JSON.stringify(newAnswers), { expires: 1 });
   };
 
@@ -193,12 +185,7 @@ function App() {
   const handleSubmit = async () => {
     setSubmitting(true);
     setShowSubmitModal(false);
-    setExamCompleted(true); // This triggers ResultScreen rendering
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch((err) =>
-        console.log('Error exiting fullscreen:', err)
-      );
-    }
+    setExamCompleted(true);
 
     const accessToken = localStorage.getItem('access_token');
     const tokenType = localStorage.getItem('token_type');
@@ -233,7 +220,7 @@ function App() {
       if (response.ok) {
         const data = await response.json();
         console.log('Submit response:', data);
-        setExamResults(data); // Set results to display in ResultScreen
+        setExamResults(data);
         localStorage.removeItem(`exam_${examId}_answers`);
       } else if (response.status === 403) {
         setError('Access denied. Please log in again.');
@@ -252,6 +239,11 @@ function App() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleTabSwitchTimeout = () => {
+    setTabSwitchWarning(false);
+    handleSubmit();
   };
 
   if (loading || submitting) {
@@ -301,7 +293,7 @@ function App() {
             handleNextQuestion={handleNextQuestion}
             handlePrevQuestion={handlePrevQuestion}
             jumpToQuestion={jumpToQuestion}
-            onSubmit={handleSubmit} // Pass handleSubmit from App.jsx
+            onSubmit={handleSubmit}
             showSubmitModal={showSubmitModal}
             setShowSubmitModal={setShowSubmitModal}
             transformedQuestions={transformedQuestions}
@@ -311,7 +303,10 @@ function App() {
 
       <AnimatePresence>
         {tabSwitchWarning && (
-          <TabSwitchWarning clearWarning={() => setTabSwitchWarning(false)} />
+          <TabSwitchWarning
+            clearWarning={() => setTabSwitchWarning(false)}
+            onTimeout={handleTabSwitchTimeout}
+          />
         )}
       </AnimatePresence>
     </div>
