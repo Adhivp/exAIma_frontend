@@ -31,32 +31,46 @@ export default function ProctoringPage() {
   if (isLoading) {
     return (
       <div className={`w-full h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'} flex flex-col items-center justify-center`}>
+         <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="w-full min-h-screen bg-gradient-to-br from-green-50 to-white flex flex-col items-center justify-center"
+      >
         <motion.div
           animate={{
+            rotate: [0, 360],
             scale: [1, 1.2, 1],
-            rotate: [0, 0, 0, 360, 0],
           }}
           transition={{
             duration: 2,
-            ease: "easeInOut",
-            times: [0, 0.2, 0.5, 0.8, 1],
             repeat: Infinity,
-            repeatDelay: 0.5
+            ease: "easeInOut",
           }}
-          className="flex items-center"
+          className="relative w-20 h-20"
         >
-          <div className="h-12 w-12 bg-gradient-to-r from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xl">ex</span>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-green-500 to-green-300 opacity-30 blur-md" />
+          <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-green-500 to-green-300 opacity-50 blur-sm" />
+          <div className="absolute inset-4 rounded-full bg-white flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
           </div>
-          <motion.span 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className={`ml-2 text-xl font-light ${darkMode ? 'text-green-400' : 'text-green-600'}`}
-          >
-            exAIma
-          </motion.span>
         </motion.div>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="text-green-800 font-semibold mt-6 text-lg"
+        >
+          Preparing your learning journey...
+        </motion.p>
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: "200px" }}
+          transition={{ delay: 0.8, duration: 2.5 }}
+          className="h-1 bg-gradient-to-r from-green-500 to-green-300 rounded-full mt-4"
+        />
+      </motion.div>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: "200px" }}
@@ -110,9 +124,11 @@ export default function ProctoringPage() {
             whileHover={{ rotate: [0, -10, 10, -10, 0] }}
             transition={{ duration: 0.5 }}
           >
-            <div className="h-8 w-8 bg-gradient-to-r from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-md mr-2">
-              <span className="text-white font-bold">ex</span>
-            </div>
+            {/* <div className="h-8 w-8 bg-gradient-to-r from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-md mr-2"> */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            {/* </div> */}
           </motion.div>
           <h1 className={`text-xl font-light ${darkMode ? 'text-green-400' : 'text-green-600'}`}>exAIma</h1>
         </motion.div>
@@ -259,7 +275,7 @@ export default function ProctoringPage() {
             {/* Main image */}
             <div className={`relative z-10 rounded-xl overflow-hidden shadow-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} p-4`}>
               <img
-                src="/api/placeholder/600/400"
+                src="/exam_home1.png"
                 alt="AI Proctoring System"
                 className="rounded-lg w-full object-cover"
               />
@@ -272,7 +288,7 @@ export default function ProctoringPage() {
                   transition={{ delay: 1.5 }}
                   className="absolute top-4 right-4 bg-green-500 text-white p-2 rounded-lg shadow-lg text-sm"
                 >
-                  Live Monitoring
+                  {/* Live Monitoring */}
                 </motion.div>
                 
                 <motion.div
@@ -281,8 +297,8 @@ export default function ProctoringPage() {
                   transition={{ delay: 1.7 }}
                   className="absolute bottom-4 left-4 bg-white bg-opacity-90 p-2 rounded-lg shadow-lg flex items-center space-x-2"
                 >
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-medium text-gray-800">Secure Session</span>
+                  {/* <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" /> */}
+                  {/* <span className="text-sm font-medium text-gray-800">Secure Session</span> */}
                 </motion.div>
               </div>
             </div>
@@ -316,9 +332,11 @@ export default function ProctoringPage() {
       >
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center mb-4 md:mb-0">
-            <div className="h-6 w-6 bg-gradient-to-r from-green-400 to-green-600 rounded-md flex items-center justify-center shadow-md mr-2">
-              <span className="text-white font-bold text-xs">ex</span>
-            </div>
+            {/* <div className="h-6 w-6 bg-gradient-to-r from-green-400 to-green-600 rounded-md flex items-center justify-center shadow-md mr-2"> */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            {/* </div> */}
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               © {new Date().getFullYear()} exAIma. All rights reserved.
             </p>
