@@ -19,6 +19,8 @@ function ExamScreen({
   showSubmitModal,
   setShowSubmitModal,
   transformedQuestions,
+  warningCount, // New prop to track warnings
+  setWarningCount, // New prop to update warning count
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -118,33 +120,32 @@ function ExamScreen({
     e.preventDefault();
     if (isFullScreen) {
       setShowKeyWarning(true);
+      setWarningCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount >= 4) {
+          onSubmit();
+          exitFullScreen();
+          navigate('/results');
+        }
+        return newCount;
+      });
     }
   };
 
   const handleKeyDown = (e) => {
-    // Allow only alphanumeric keys (A-Z, 0-9) and navigation keys (arrows, Enter)
-    const allowedKeys = [
-      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Tab'
-    ];
-    const isAlphanumeric = /^[a-zA-Z0-9]$/.test(e.key);
-
-    if (!isAlphanumeric && !allowedKeys.includes(e.key)) {
-      e.preventDefault();
+    // Block all keys
+    e.preventDefault();
+    if (isFullScreen) {
       setShowKeyWarning(true);
-    }
-
-    // Block specific keys
-    if (
-      e.key === 'Escape' ||
-      e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-      e.ctrlKey ||
-      e.altKey ||
-      e.metaKey ||
-      e.shiftKey
-    ) {
-      e.preventDefault();
-      setShowKeyWarning(true);
+      setWarningCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount >= 4) {
+          onSubmit();
+          exitFullScreen();
+          navigate('/results');
+        }
+        return newCount;
+      });
     }
   };
 
@@ -205,16 +206,18 @@ function ExamScreen({
       className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl flex relative"
     >
       <div className="flex-1 pr-8">
-        {!isFullScreen && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={enterFullScreen}
-            className="mb-6 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
-          >
-            Start Exam in Fullscreen
-          </motion.button>
-        )}
+      {!isFullScreen && (
+  <div className="flex justify-center items-center">
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={enterFullScreen}
+      className="mb-6 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
+    >
+      Start Exam in Fullscreen
+    </motion.button>
+  </div>
+)}
 
         {isFullScreen && (
           <>
@@ -433,8 +436,11 @@ function ExamScreen({
               className="bg-white rounded-xl p-6 max-w-sm shadow-2xl text-center"
             >
               <h2 className="text-xl font-bold text-red-600 mb-4">Warning!</h2>
-              <p className="text-gray-600 mb-6">
-                Special keys or restricted actions are not allowed during the exam.
+              <p className="text-gray-600 mb-4">
+                Keyboard usage is not allowed during the exam. Warning {warningCount} of 3.
+              </p>
+              <p className="text-red-500 font-semibold mb-6">
+                At 4 warnings, the exam will be automatically submitted.
               </p>
               <motion.button
                 whileHover={{ scale: 1.05 }}

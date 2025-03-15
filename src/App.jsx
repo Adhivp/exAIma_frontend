@@ -25,6 +25,7 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [examResults, setExamResults] = useState(null);
+  const [warningCount, setWarningCount] = useState(0); // New state to track warnings
 
   // Fetch questions from API
   useEffect(() => {
@@ -178,6 +179,7 @@ function App() {
     setAnswers(new Array(transformedQuestions.length).fill(null));
     setShowSubmitModal(false);
     setExamResults(null);
+    setWarningCount(0); // Reset warning count
     Cookies.remove(`exam_${examId}_answers`);
     navigate('/user');
   };
@@ -297,6 +299,8 @@ function App() {
             showSubmitModal={showSubmitModal}
             setShowSubmitModal={setShowSubmitModal}
             transformedQuestions={transformedQuestions}
+            warningCount={warningCount} // Pass warning count
+            setWarningCount={setWarningCount} // Pass setWarningCount function
           />
         )}
       </AnimatePresence>
