@@ -41,7 +41,7 @@ export default function RegisterPage() {
 
       if (response.ok) {
         // Successful registration
-        setShowSuccess(true); // Show success popup
+        setShowSuccess(true); // Show success popup only on success
       } else {
         setError(data.detail || 'Registration failed. Please try again.');
       }
@@ -119,11 +119,12 @@ export default function RegisterPage() {
           </a>
         </p>
       </div>
-      <SuccessPopup
-        message="Register successfully"
-        onClose={handlePopupClose}
-        open={showSuccess}
-      />
+      {showSuccess && (
+        <SuccessPopup
+          message="Register successfully"
+          onClose={handlePopupClose}
+        />
+      )}
     </div>
   );
 }

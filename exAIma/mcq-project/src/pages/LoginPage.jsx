@@ -35,7 +35,7 @@ export default function LoginPage() {
         localStorage.setItem('token_type', data.token_type);
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('user', JSON.stringify({ username }));
-        setShowSuccess(true); // Show success popup
+        setShowSuccess(true); // Show success popup only on success
       } else {
         setError(data.detail || 'Invalid username or password');
       }
@@ -91,11 +91,12 @@ export default function LoginPage() {
           </a>
         </p>
       </div>
-      <SuccessPopup
-        message="Login successful"
-        onClose={handlePopupClose}
-        open={showSuccess}
-      />
+      {showSuccess && (
+        <SuccessPopup
+          message="Login successful"
+          onClose={handlePopupClose}
+        />
+      )}
     </div>
   );
 }

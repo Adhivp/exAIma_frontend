@@ -12,7 +12,6 @@ export default function UserPage() {
   const exams = [
     { id: 1, title: 'Python Basics', questionsCount: 10, duration: '10 mins' },
     { id: 2, title: 'Python Advanced', questionsCount: 15, duration: '15 mins' },
-    // Add more exams as needed
   ];
 
   const handleStartExam = (examId) => {
@@ -34,22 +33,22 @@ export default function UserPage() {
         localStorage.removeItem('token_type');
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('user');
-        setShowSuccess(true); // Show success popup
+        setShowSuccess(true); // Show success popup only on success
       } else {
-        // Even if the API fails, clear local storage and redirect
+        // Handle API failure (e.g., token expired, server error)
         localStorage.removeItem('access_token');
         localStorage.removeItem('token_type');
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('user');
-        setShowSuccess(true); // Show success popup anyway
+        navigate('/'); // Redirect without showing popup
       }
     } catch (error) {
-      // Handle network errors by clearing local storage
+      // Handle network errors
       localStorage.removeItem('access_token');
       localStorage.removeItem('token_type');
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('user');
-      setShowSuccess(true); // Show success popup anyway
+      navigate('/'); // Redirect without showing popup
     }
   };
 
@@ -88,11 +87,12 @@ export default function UserPage() {
           </motion.div>
         ))}
       </div>
-      <SuccessPopup
-        message="Logout successfully"
-        onClose={handlePopupClose}
-        open={showSuccess}
-      />
+      {showSuccess && (
+        <SuccessPopup
+          message="Logout successfully"
+          onClose={handlePopupClose}
+        />
+      )}
     </div>
   );
 }
