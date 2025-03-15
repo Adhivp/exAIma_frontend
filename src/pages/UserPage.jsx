@@ -1,7 +1,10 @@
+// src/pages/UserPage.jsx
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import SuccessPopup from '../components/SuccessPopup';
+import InternetSpeed from '../components/InternetSpeed';
+import ExamCount from '../components/ExamCount';
 
 export default function UserPage() {
   const navigate = useNavigate();
@@ -66,7 +69,7 @@ export default function UserPage() {
           setError(errorData.detail || 'Failed to fetch exams.');
         }
       } catch (error) {
-        setError('Sometthing went wrong');
+        setError('Something went wrong');
         console.error('Fetch exams error:', error);
       } finally {
         setLoading(false);
@@ -475,82 +478,91 @@ export default function UserPage() {
               ) : (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <AnimatePresence>
-                      {filteredExams.map((exam, index) => (
-                        <motion.div
-                          key={exam.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          transition={{ delay: 0.1 * index }}
-                          whileHover={{ 
-                            y: -5,
-                            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                          }}
-                          className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-green-100'} rounded-2xl shadow-lg overflow-hidden border ${
-                            selectedExam === exam.id ? 'ring-4 ring-green-400 ring-opacity-50' : ''
-                          }`}
-                        >
-                          <div className="h-2 bg-gradient-to-r from-green-400 to-green-600" />
-                          <div className="p-6">
-                            <div className="flex justify-between items-start">
-                              <h3 className={`text-2xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>{exam.exam_name}</h3>
-                              <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                                {exam.difficulty || 'Standard'}
-                              </span>
-                            </div>
-                            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-3 h-12 overflow-hidden`}>
-                              {exam.description || 'Test your knowledge with this comprehensive assessment'}
-                            </p>
-                            <div className="mt-4 flex items-center justify-between">
-                              <div className="flex items-center">
-                                <div className={`w-10 h-10 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-green-100'} rounded-full`}>
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                </div>
-                                <span className={`ml-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{exam.number_of_questions || 0} Questions</span>
+                    {/* Exam Cards */}
+                    <div className="col-span-1 sm:col-span-2 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
+                      <AnimatePresence>
+                        {filteredExams.map((exam, index) => (
+                          <motion.div
+                            key={exam.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ delay: 0.1 * index }}
+                            whileHover={{ 
+                              y: -5,
+                              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                            }}
+                            className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-green-100'} rounded-2xl shadow-lg overflow-hidden border ${
+                              selectedExam === exam.id ? 'ring-4 ring-green-400 ring-opacity-50' : ''
+                            }`}
+                          >
+                            <div className="h-2 bg-gradient-to-r from-green-400 to-green-600" />
+                            <div className="p-6">
+                              <div className="flex justify-between items-start">
+                                <h3 className={`text-2xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>{exam.exam_name}</h3>
+                                <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                  {exam.difficulty || 'Standard'}
+                                </span>
                               </div>
-                              <div className="flex items-center">
-                                <div className={`w-10 h-10 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-green-100'} rounded-full`}>
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
+                              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-3 h-12 overflow-hidden`}>
+                                {exam.description || 'Test your knowledge with this comprehensive assessment'}
+                              </p>
+                              <div className="mt-4 flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <div className={`w-10 h-10 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-green-100'} rounded-full`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </div>
+                                  <span className={`ml-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{exam.number_of_questions || 0} Questions</span>
                                 </div>
-                                <span className={`ml-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{exam.duration_mins || 60} mins</span>
+                                <div className="flex items-center">
+                                  <div className={`w-10 h-10 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-green-100'} rounded-full`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </div>
+                                  <span className={`ml-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{exam.duration_mins || 60} mins</span>
+                                </div>
                               </div>
+                              <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleStartExam(exam.id)}
+                                disabled={selectedExam !== null}
+                                className={`mt-6 w-full py-3 rounded-xl font-medium text-white shadow-md transition-all duration-300 
+                                  ${selectedExam === exam.id 
+                                    ? 'bg-green-700 cursor-wait' 
+                                    : selectedExam !== null 
+                                      ? 'bg-gray-400 cursor-not-allowed' 
+                                      : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'}`}
+                              >
+                                {selectedExam === exam.id ? (
+                                  <div className="flex items-center justify-center">
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Loading Exam...
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span>Start Exam</span>
+                                    <span className="ml-2">→</span>
+                                  </>
+                                )}
+                              </motion.button>
                             </div>
-                            <motion.button
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleStartExam(exam.id)}
-                              disabled={selectedExam !== null}
-                              className={`mt-6 w-full py-3 rounded-xl font-medium text-white shadow-md transition-all duration-300 
-                                ${selectedExam === exam.id 
-                                  ? 'bg-green-700 cursor-wait' 
-                                  : selectedExam !== null 
-                                    ? 'bg-gray-400 cursor-not-allowed' 
-                                    : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'}`}
-                            >
-                              {selectedExam === exam.id ? (
-                                <div className="flex items-center justify-center">
-                                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                  Loading Exam...
-                                </div>
-                              ) : (
-                                <>
-                                  <span>Start Exam</span>
-                                  <span className="ml-2">→</span>
-                                </>
-                              )}
-                            </motion.button>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Right Sidebar for InternetSpeed and ExamCount */}
+                    <div className="col-span-1 flex flex-col space-y-8 justify-start items-end">
+                      <InternetSpeed darkMode={darkMode} />
+                      <ExamCount darkMode={darkMode} totalExams={filteredExams.length} />
+                    </div>
                   </div>
 
                   {filteredExams.length === 0 && (
@@ -771,10 +783,10 @@ export default function UserPage() {
               className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl shadow-lg`}
             >
               <div className="text-center mb-8">
-                <div className="h-20 w-20 bg-gradient-to-tr from-green-600 to-green-400 rounded-2xl flex items-center justify-center shadow-lg mx-auto">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
+                <div className="h-20 w-20 from-green-600 to-green-400 rounded-2xl flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
                 </div>
                 <h2 className={`mt-4 text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>ExamMaster</h2>
                 <p className={`mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Version 1.0.0</p>
@@ -782,23 +794,27 @@ export default function UserPage() {
               
               <div className="prose max-w-none mx-auto">
                 <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  ExamMaster is an advanced online examination platform designed to make assessment easy, 
-                  secure, and insightful for both educators and students.
+                Cheating is a skill, but no skill lasts forever. True success comes from mastering knowledge and proving yourself through genuine effort. At exAIma, we believe that exams should be a fair test of your abilities, not a loophole to exploit. That’s why we’ve built a powerful proctoring system that ensures integrity while making the exam experience smooth and stress-free.
                 </p>
                 
                 <h3 className={`mt-6 text-xl font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Features</h3>
                 <ul className={`mt-3 list-disc pl-5 space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   <li>Secure examination environment</li>
-                  <li>Detailed analytics and reporting</li>
                   <li>Multiple question formats</li>
                   <li>Timed assessments</li>
                   <li>Instant feedback</li>
                   <li>Mobile-friendly interface</li>
                 </ul>
+                <br></br>
+
+                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Our platform is designed with a user-friendly register-login-profile setup, allowing users to manage multiple exams effortlessly. Whether you're a student, educator, or institution, exAIma provides a seamless and secure way to conduct assessments without distractions. By focusing on intuitive design and real-time monitoring, we enhance the overall exam experience while maintaining fairness.</p>
                 
+                <br></br>
+                <p>exAIma was born out of innovation at The Great Bengaluru Hackathon, crafted by our passionate team, Porotta Pythoners. We set out to revolutionize digital proctoring, combining cutting-edge technology with an emphasis on learning. Our goal is simple—help you achieve academic excellence through honest effort and determination.</p>
                 <h3 className={`mt-6 text-xl font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Contact Support</h3>
                 <p className={`mt-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Need help? Contact our support team at <a href="mailto:support@exammaster.com" className="text-green-600 hover:text-green-700">support@exammaster.com</a>
+                  Need help? Contact our support team at <a href="mailto:support@exAIma.com" className="text-green-600 hover:text-green-700">support@exAIma.com</a>
                 </p>
               </div>
             </motion.div>
@@ -816,7 +832,7 @@ export default function UserPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <span className=" text-sm font-medium">ExamMaster © 2025</span>
+              <span className=" text-sm font-medium">exAIma © 2025</span>
             </div>
             
             <div className="flex space-x-6 mt-4 md:mt-0">
