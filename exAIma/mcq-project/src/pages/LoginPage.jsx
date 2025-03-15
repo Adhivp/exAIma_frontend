@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SuccessPopup from '../components/SuccessPopup';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -33,7 +35,7 @@ export default function LoginPage() {
         localStorage.setItem('token_type', data.token_type);
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('user', JSON.stringify({ username }));
-        navigate('/user');
+        setShowSuccess(true); // Show success popup only on success
       } else {
         setError(data.detail || 'Invalid username or password');
       }
@@ -42,8 +44,13 @@ export default function LoginPage() {
     }
   };
 
+  const handlePopupClose = () => {
+    setShowSuccess(false);
+    navigate('/user'); // Redirect to user page after popup closes
+  };
+
   return (
-    <div className="w-full h-screen bg-gray-100 flex items-center justify-center">
+    <div className="w-full h-screen bg-gray-100 flex items-center justify-center relative">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-2xl">
         <h2 className="text-2xl font-bold text-green-800 text-center mb-6">Login</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -84,6 +91,12 @@ export default function LoginPage() {
           </a>
         </p>
       </div>
+      {showSuccess && (
+        <SuccessPopup
+          message="Login successful"
+          onClose={handlePopupClose}
+        />
+      )}
     </div>
   );
 }

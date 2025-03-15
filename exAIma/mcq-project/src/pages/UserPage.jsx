@@ -1,15 +1,17 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
+import SuccessPopup from '../components/SuccessPopup';
 
 export default function UserPage() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user')) || { username: 'Guest' };
   const accessToken = localStorage.getItem('access_token');
   const tokenType = localStorage.getItem('token_type');
+  const [showSuccess, setShowSuccess] = useState(false);
   const exams = [
     { id: 1, title: 'Python Basics', questionsCount: 10, duration: '10 mins' },
     { id: 2, title: 'Python Advanced', questionsCount: 15, duration: '15 mins' },
-    // Add more exams as needed
   ];
 
   const handleStartExam = (examId) => {
@@ -31,27 +33,32 @@ export default function UserPage() {
         localStorage.removeItem('token_type');
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('user');
-        navigate('/');
+        setShowSuccess(true); // Show success popup only on success
       } else {
-        // Even if the API fails, clear local storage and redirect
+        // Handle API failure (e.g., token expired, server error)
         localStorage.removeItem('access_token');
         localStorage.removeItem('token_type');
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('user');
-        navigate('/');
+        navigate('/'); // Redirect without showing popup
       }
     } catch (error) {
-      // Handle network errors by clearing local storage
+      // Handle network errors
       localStorage.removeItem('access_token');
       localStorage.removeItem('token_type');
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('user');
-      navigate('/');
+      navigate('/'); // Redirect without showing popup
     }
   };
 
+  const handlePopupClose = () => {
+    setShowSuccess(false);
+    navigate('/'); // Redirect to homepage after popup closes
+  };
+
   return (
-    <div className="w-full min-h-screen bg-gray-100 p-8">
+    <div className="w-full min-h-screen bg-gray-100 p-8 relative">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-green-800">Welcome, {user.username}!</h1>
         <button
@@ -80,6 +87,12 @@ export default function UserPage() {
           </motion.div>
         ))}
       </div>
+      {showSuccess && (
+        <SuccessPopup
+          message="Logout successfully"
+          onClose={handlePopupClose}
+        />
+      )}
     </div>
   );
 }
