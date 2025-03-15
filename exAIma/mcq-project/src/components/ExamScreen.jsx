@@ -27,7 +27,6 @@ function ExamScreen({
       transition={{ duration: 0.5 }}
       className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl flex relative"
     >
-      {/* Main Content */}
       <div className="flex-1 pr-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-green-800 tracking-tight">
@@ -148,7 +147,6 @@ function ExamScreen({
         </div>
       </div>
 
-      {/* Question Navigation Panel */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
