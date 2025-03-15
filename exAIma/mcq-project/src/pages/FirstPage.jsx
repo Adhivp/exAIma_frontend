@@ -13,13 +13,13 @@ export default function ProctoringPage() {
       <nav className="w-full bg-white shadow-md p-4 flex justify-between items-center">
         <div className="flex items-center">
           <img src="/exAIma_logo.png" alt="exAIma Logo" className="h-8 mr-2" />
-          <h1 className="text-2xl text-green-600">exAIma</h1>
+          <h2 className="text-2xl text-green-600">exAIma</h2>
         </div>
       </nav>
       
       {/* Main Content */}
       <div className="flex flex-1 justify-center items-center p-8">
-        <div className="max-w-4xl flex flex-col md:flex-row items-center">
+        <div className="max-w-6xl flex flex-col md:flex-row items-center">
           {/* Text Content */}
           <div className="flex-1 text-center md:text-left">
             <h2 className="text-4xl font-bold text-gray-900">
