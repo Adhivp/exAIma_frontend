@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaCheckCircle, FaRegClock, FaChevronRight } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { useLocation } from 'react-router-dom';
 
 function ExamScreen({
   currentQuestionIndex,
@@ -15,17 +14,15 @@ function ExamScreen({
   handleNextQuestion,
   handlePrevQuestion,
   jumpToQuestion,
-  onSubmit,
+  onSubmit, // Use this prop instead of local handleSubmit
   showSubmitModal,
   setShowSubmitModal,
   transformedQuestions,
 }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const { state } = location;
   const { examId, examName = 'Exam', durationMins = 60 } = state || {};
   const [localTimeLeft, setLocalTimeLeft] = useState(timeLeft || durationMins * 60);
-  const [examResults, setExamResults] = useState(null);
 
   // Timer functionality
   useEffect(() => {
@@ -35,7 +32,7 @@ function ExamScreen({
         setLocalTimeLeft((prevTime) => {
           if (prevTime <= 1) {
             clearInterval(timer);
-            handleSubmit();
+            onSubmit(); // Call onSubmit from props when time runs out
             return 0;
           }
           return prevTime - 1;
@@ -43,11 +40,11 @@ function ExamScreen({
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [localTimeLeft]);
+  }, [localTimeLeft, onSubmit]);
 
-  // Load answers from cookies on mount
+  // Load answers from localStorage on mount
   useEffect(() => {
-    const savedAnswers = Cookies.get(`exam_${examId}_answers`);
+    const savedAnswers = localStorage.getItem(`exam_${examId}_answers`);
     if (savedAnswers) {
       setAnswers(JSON.parse(savedAnswers));
     }
@@ -64,59 +61,7 @@ function ExamScreen({
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = optionId;
     setAnswers(newAnswers);
-
-    // Store in cookies
-    const cookieData = {
-      exam_id: examId,
-      answers: transformedQuestions.map((q, index) => ({
-        question_id: q.id,
-        selected_option: newAnswers[index] || '',
-      })),
-    };
-    Cookies.set(`exam_${examId}_answers`, JSON.stringify(newAnswers), { expires: 1 }); // Expires in 1 day
-  };
-
-  const handleSubmit = async () => {
-    const tokenType = localStorage.getItem('token_type');
-    const accessToken = localStorage.getItem('access_token');
-
-    const submissionData = {
-      exam_id: examId,
-      answers: transformedQuestions.map((q, index) => ({
-        question_id: q.id,
-        selected_option: answers[index] || '',
-      })),
-    };
-
-    try {
-      const response = await fetch('http://4.240.76.3:8000/exams/submit', {
-        method: 'POST',
-        headers: {
-          'Authorization': `${tokenType} ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submissionData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setExamResults(result);
-        Cookies.remove(`exam_${examId}_answers`); // Clear cookies after submission
-        navigate('/result', {
-          state: {
-            examResults: result,
-            timeLeft: localTimeLeft,
-            totalQuestions: transformedQuestions.length,
-          },
-        });
-      } else {
-        console.error('Submission failed:', await response.text());
-        alert('Failed to submit exam. Please try again.');
-      }
-    } catch (error) {
-      console.error('Submit error:', error);
-      alert('Network error. Please check your connection.');
-    }
+    localStorage.setItem(`exam_${examId}_answers`, JSON.stringify(newAnswers));
   };
 
   if (!transformedQuestions || transformedQuestions.length === 0) {
@@ -349,7 +294,7 @@ function ExamScreen({
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={handleSubmit}
+                  onClick={onSubmit} // Call onSubmit from props
                   className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
                 >
                   Yes, Submit

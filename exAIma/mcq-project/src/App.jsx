@@ -193,7 +193,7 @@ function App() {
   const handleSubmit = async () => {
     setSubmitting(true);
     setShowSubmitModal(false);
-    setExamCompleted(true);
+    setExamCompleted(true); // This triggers ResultScreen rendering
     if (document.fullscreenElement) {
       document.exitFullscreen().catch((err) =>
         console.log('Error exiting fullscreen:', err)
@@ -206,10 +206,18 @@ function App() {
     try {
       const payload = {
         exam_id: examId,
-        answers: transformedQuestions.map((question, idx) => ({
-          question_id: question.id,
-          selected_option: answers[idx] || '',
-        })),
+        answers: transformedQuestions
+          .map((question, idx) => {
+            const selectedOption = answers[idx];
+            if (selectedOption) {
+              return {
+                question_id: question.id,
+                selected_option: selectedOption,
+              };
+            }
+            return null;
+          })
+          .filter((answer) => answer !== null),
       };
       console.log('Submit payload:', payload);
 
@@ -225,8 +233,8 @@ function App() {
       if (response.ok) {
         const data = await response.json();
         console.log('Submit response:', data);
-        setExamResults(data);
-        Cookies.remove(`exam_${examId}_answers`);
+        setExamResults(data); // Set results to display in ResultScreen
+        localStorage.removeItem(`exam_${examId}_answers`);
       } else if (response.status === 403) {
         setError('Access denied. Please log in again.');
         localStorage.clear();
@@ -293,7 +301,7 @@ function App() {
             handleNextQuestion={handleNextQuestion}
             handlePrevQuestion={handlePrevQuestion}
             jumpToQuestion={jumpToQuestion}
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit} // Pass handleSubmit from App.jsx
             showSubmitModal={showSubmitModal}
             setShowSubmitModal={setShowSubmitModal}
             transformedQuestions={transformedQuestions}
