@@ -12,7 +12,38 @@ export default function ProctoringPage() {
   useEffect(() => {
     const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     setDarkMode(prefersDarkMode);
-    
+    const disableRightClick = (e) => {
+      e.preventDefault();
+      alert("Right-click is disabled for security reasons.");
+    };
+    document.addEventListener('contextmenu', disableRightClick);
+  
+    // Disable developer tools shortcuts
+    const disableDevTools = (e) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+        (e.ctrlKey && e.key === 'U')
+      ) {
+        e.preventDefault();
+        alert("Developer tools are disabled during this session.");
+      }
+    };
+    document.addEventListener('keydown', disableDevTools);
+  
+    // Detect if dev tools are open (basic method)
+    const detectDevTools = () => {
+      const threshold = 160; // Approximate width/height when dev tools are open
+      if (
+        window.outerWidth - window.innerWidth > threshold ||
+        window.outerHeight - window.innerHeight > threshold
+      ) {
+        alert("Developer tools detected! This session will be terminated.");
+        setIsClosed(true); // Close the page
+      }
+    };
+    const devToolsInterval = setInterval(detectDevTools, 1000);
+    // --
     // Simulating loading state
     const timer = setTimeout(() => {
       setIsLoading(false);
