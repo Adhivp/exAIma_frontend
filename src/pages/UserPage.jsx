@@ -729,19 +729,22 @@ export default function UserPage() {
 
               <div className="prose max-w-none mx-auto">
                 <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Cheating is a skill, but true success comes from mastering knowledge. exAIma ensures integrity with a powerful proctoring system.
+                Cheating is a skill, but no skill lasts forever. True success comes from mastering knowledge and proving yourself through genuine effort. At exAIma, we believe that exams should be a fair test of your abilities, not a loophole to exploit. That’s why we’ve built a powerful proctoring system that ensures integrity while making the exam experience smooth and stress-free.
                 </p>
                 <h3 className={`mt-6 text-xl font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Features</h3>
                 <ul className={`mt-3 list-disc pl-5 space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   <li>Secure examination environment</li>
-                  <li>Multiple question formats</li>
+                  <li>Exam Analytics</li>
                   <li>Timed assessments</li>
                   <li>Instant feedback</li>
                   <li>Mobile-friendly interface</li>
                 </ul>
+                <br></br>
                 <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Built by Porotta Pythoners at The Great Bengaluru Hackathon, exAIma revolutionizes digital proctoring.
+                Our platform is designed with a user-friendly register-login-profile setup, allowing users to manage multiple exams effortlessly. Whether you're a student, educator, or institution, exAIma provides a seamless and secure way to conduct assessments without distractions. By focusing on intuitive design and real-time monitoring, we enhance the overall exam experience while maintaining fairness.
                 </p>
+                <br></br>
+                <p>exAIma was born out of innovation at The Great Bengaluru Hackathon, crafted by our passionate team, Porotta Pythoners. We set out to revolutionize digital proctoring, combining cutting-edge technology with an emphasis on learning. Our goal is simple—help you achieve academic excellence through honest effort and determination.</p>
                 <h3 className={`mt-6 text-xl font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Contact Support</h3>
                 <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   Need help? Contact us at <a href="mailto:support@exAIma.com" className="text-green-600 hover:text-green-700">support@exAIma.com</a>
