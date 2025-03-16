@@ -492,7 +492,7 @@ export default function UserPage() {
                   <button onClick={() => setActiveTab('results')} className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md">View Results</button>
                 </div>
                 <div className="p-4 rounded-xl shadow-inner bg-green-50">
-                  <h3 className="text-lg font-semibold text-green-700-700 mb-2">Your Profile</h3>
+                  <h3 className="text-lg font-semibold text-green-700 mb-2">Your Profile</h3>
                   <p className="text-sm text-gray-600">Manage your account.</p>
                   <button onClick={() => setActiveTab('profile')} className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md">Go to Profile</button>
                 </div>
