@@ -513,7 +513,7 @@ function ExamScreen({
                   onClick={() => {
                     onSubmit();
                     exitFullScreen();
-                    navigate('/results');
+                    //navigate('/results');
                   }}
                   className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
                 >
