@@ -89,7 +89,7 @@ const InternetSpeed = ({ darkMode }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`w-56 h-36 p-4 rounded-2xl shadow-lg overflow-hidden border ${
+      className={`w-64 h-40 p-4 rounded-2xl shadow-lg overflow-hidden border ${
         darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-green-100'
       } flex flex-col items-center justify-center`}
       whileHover={{

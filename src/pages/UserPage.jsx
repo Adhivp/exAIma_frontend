@@ -486,15 +486,15 @@ export default function UserPage() {
                   <p className="text-sm text-gray-600">Dive into a variety of exams.</p>
                   <button onClick={() => setActiveTab('exams')} className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md">View Exams</button>
                 </div>
-                <div className="p-4 rounded-xl shadow-inner bg-blue-50">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-2">Check Results</h3>
+                <div className="p-4 rounded-xl shadow-inner bg-green-50">
+                  <h3 className="text-lg font-semibold text-green-700 mb-2">Check Results</h3>
                   <p className="text-sm text-gray-600">Review your performance.</p>
-                  <button onClick={() => setActiveTab('results')} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md">View Results</button>
+                  <button onClick={() => setActiveTab('results')} className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md">View Results</button>
                 </div>
-                <div className="p-4 rounded-xl shadow-inner bg-yellow-50">
-                  <h3 className="text-lg font-semibold text-yellow-700 mb-2">Your Profile</h3>
+                <div className="p-4 rounded-xl shadow-inner bg-green-50">
+                  <h3 className="text-lg font-semibold text-green-700-700 mb-2">Your Profile</h3>
                   <p className="text-sm text-gray-600">Manage your account.</p>
-                  <button onClick={() => setActiveTab('profile')} className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-md">Go to Profile</button>
+                  <button onClick={() => setActiveTab('profile')} className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md">Go to Profile</button>
                 </div>
               </div>
             </motion.div>
