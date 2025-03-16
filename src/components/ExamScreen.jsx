@@ -19,8 +19,8 @@ function ExamScreen({
   showSubmitModal,
   setShowSubmitModal,
   transformedQuestions,
-  warningCount, // New prop to track warnings
-  setWarningCount, // New prop to update warning count
+  warningCount,
+  setWarningCount,
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -133,7 +133,6 @@ function ExamScreen({
   };
 
   const handleKeyDown = (e) => {
-    // Block all keys
     e.preventDefault();
     if (isFullScreen) {
       setShowKeyWarning(true);
@@ -206,18 +205,51 @@ function ExamScreen({
       className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl flex relative"
     >
       <div className="flex-1 pr-8">
-      {!isFullScreen && (
-  <div className="flex justify-center items-center">
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={enterFullScreen}
-      className="mb-6 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
-    >
-      Start Exam in Fullscreen
-    </motion.button>
-  </div>
-)}
+        {!isFullScreen && (
+          <div className="flex flex-col items-center justify-center">
+            <b className="mb-4 text-2xl">Online Exam Instructions</b>
+
+            <ul className="list-disc list-outside space-y-4 text-left max-w-2xl">
+              <li>
+                <b>Technical Restrictions</b>
+                <ul className="list-disc text-green-600 list-inside ml-4 mt-2 space-y-2">
+                  <li><b>Browser Lockdown:</b> The exam is conducted in a secure browser mode. You cannot minimize, close, or switch tabs during the exam.</li>
+                  <li><b>Right-Click Disabled:</b> Right-clicking is not allowed to prevent unfair means.</li>
+                  <li><b>Inspect Element Blocked:</b> Developer tools (Inspect, Console, Elements, etc.) are disabled.</li>
+                  <li><b>No Access to Builder Tools:</b> Any attempt to access unauthorized tools or settings is strictly prohibited.</li>
+                  <li><b>Tab Switching Prohibited:</b> If you attempt to switch tabs or navigate away from the exam page, warnings will be issued. Multiple violations may lead to termination of your exam.</li>
+                </ul>
+              </li>
+
+              <li>
+                <b>Exam Rules & Guidelines</b>
+                <ul className="list-disc text-green-600 list-inside ml-4 mt-2 space-y-2">
+                  <li><b>Complete the Exam on Time:</b> Ensure you finish within the allocated time. There will be no extra time granted.</li>
+                  <li><b>Multiple Warnings Can Lead to Disqualification:</b> Repeated violations (tab switching, suspicious activities, etc.) may result in automatic termination of your exam.</li>
+                  <li><b>Stable Internet Connection:</b> Ensure you have a reliable internet connection before starting the exam. Any disconnection might not grant you extra time.</li>
+                  <li><b>No External Help:</b> Do not use external resources, notes, or assistance from others.</li>
+                  <li><b>Do Not Refresh or Reload:</b> Avoid refreshing or closing the browser, as it may lead to automatic submission or disqualification.</li>
+                  <li><b>Check System Requirements:</b> Make sure your system meets the exam platform's technical requirements before starting.</li>
+                </ul>
+              </li>
+            </ul>
+
+            <div className="mt-6 text-center">
+              <b>By proceeding with the exam, you agree to follow these rules. Any violation may result in disqualification.</b>
+              <br />
+              <b className="mt-2 block">Good luck! 🚀</b>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={enterFullScreen}
+              className="mt-6 mb-6 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
+            >
+              Start Exam
+            </motion.button>
+          </div>
+        )}
 
         {isFullScreen && (
           <>
@@ -513,7 +545,6 @@ function ExamScreen({
                   onClick={() => {
                     onSubmit();
                     exitFullScreen();
-                    //navigate('/results');
                   }}
                   className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
                 >
