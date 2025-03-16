@@ -189,7 +189,7 @@ const InternetSpeed = ({ darkMode }) => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                 <motion.div 
-                  className={`bg-blue-600 h-2.5 rounded-full`}
+                  className={`bg-purple-500 h-2.5 rounded-full`}
                   initial={{ width: "0%" }}
                   animate={{ width: `${getSpeedPercentage(downloadSpeed)}%` }}
                   transition={{ duration: 1, type: "spring" }}
@@ -212,7 +212,7 @@ const InternetSpeed = ({ darkMode }) => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                       <motion.div 
-                        className="bg-green-500 h-2.5 rounded-full"
+                        className="bg-purple-500 h-2.5 rounded-full"
                         initial={{ width: "0%" }}
                         animate={{ width: `${getSpeedPercentage(uploadSpeed)}%` }}
                         transition={{ duration: 1, type: "spring", delay: 0.2 }}
