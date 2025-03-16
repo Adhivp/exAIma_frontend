@@ -46,7 +46,7 @@ function TabSwitchWarning({ clearWarning, onTimeout }) {
           onClick={clearWarning}
           className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium"
         >
-          OK
+          Got it!
         </motion.button>
       </motion.div>
     </motion.div>
