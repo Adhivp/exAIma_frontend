@@ -30,7 +30,7 @@ const ExamCount = ({ darkMode, totalExams }) => {
         />
       </svg>
       <p className={`text-xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-        Attended {totalExams}
+        Attended 2
       </p>
     </motion.div>
   );
